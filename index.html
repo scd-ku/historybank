@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>国立銀行153行 3D変遷・合併ツリー・規模指標切替</title>
+<style>
+html,body{margin:0;height:100%;background:#0d1420;color:#eef3ff;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",Meiryo,Segoe UI,sans-serif}
+#loading{height:100%;display:grid;place-items:center;text-align:center;padding:24px;box-sizing:border-box}
+#loading small{display:block;margin-top:10px;color:#aeb9ce}
+</style>
+</head>
+<body>
+<div id="loading">History Bank を読み込んでいます…<small>初回表示ではデータの読み込みに少し時間がかかることがあります。</small></div>
+<script>
+(async()=>{
+  try{
+    const files=["payload/part-01.txt","payload/part-02.txt","payload/part-03.txt","payload/part-04.txt","payload/part-05.txt","payload/part-06.txt","payload/part-07.txt","payload/part-08.txt","payload/part-09.txt","payload/part-10.txt","payload/part-11.txt","payload/part-12.txt","payload/part-13.txt","payload/part-14.txt","payload/part-15.txt","payload/part-16.txt","payload/part-17.txt"];
+    const responses=await Promise.all(files.map(f=>fetch(f,{cache:'default'})));
+    const bad=responses.find(r=>!r.ok);
+    if(bad) throw new Error('データを読み込めませんでした ('+bad.status+')');
+    const chunks=await Promise.all(responses.map(r=>r.text()));
+    const source=chunks.join('');
+    document.open();
+    document.write(source);
+    document.close();
+  }catch(err){
+    document.getElementById('loading').innerHTML='<strong>読み込みに失敗しました。</strong><small>'+String(err&&err.message||err)+'</small>';
+  }
+})();
+</script>
+</body>
+</html>
