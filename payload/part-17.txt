@@ -95,6 +95,7 @@ let focusLineage=false, selectedNodeHint=null, labelDensity='standard', uiFontSc
 let view={x:(YEAR_MAX-YEAR_MIN)*X_SCALE/2,y:-77*Y_GAP,zoom:.72,pitch:Math.PI/2,yaw:0};
 let isDragging=false,lastX=0,lastY=0,searchTerm='';
 let hoverNodeId=null, hoverPathIds=new Set(), hoverPathEdgeKeys=new Set(), hoverLatestYear=null, highlightOverlays=[], lockedNodeId=null, hoverAccentId=null;
+let parallelBranchExpansion=null;
 function yearToX(y){return (y-YEAR_MIN)*X_SCALE} function noToY(no){return -Number(no)*Y_GAP}
 function nodeColor(n){const light=themeName==='light';if((n.accuracy||'').includes('unknown')||(n.accuracy||'').includes('unverified'))return light?LIGHT_UNKNOWN_COLOR:UNKNOWN_COLOR;const pal=light?LIGHT_COLORS:COLORS;return pal[n.type]||(light?0x7f8992:0xb6c5dd);}
 function edgeColor(e){const pal=themeName==='light'?LIGHT_EDGE_COLORS:EDGE_COLORS;return pal[e.type]||(themeName==='light'?0x8d969e:0x536a91);}
@@ -201,7 +202,7 @@ function init(){
   camera=new THREE.OrthographicCamera(-500,500,500,-500,-4000,5000); raycaster=new THREE.Raycaster(); mouse=new THREE.Vector2(); setupCamera(); scene.add(new THREE.AmbientLight(0xffffff,.78)); const l=new THREE.DirectionalLight(0xffffff,.9); l.position.set(100,100,500); scene.add(l);
   drawGrid(); groups.parallel=buildGroup(GRAPH.nodes,GRAPH.edges,'parallel'); groups.tree=buildGroup(GRAPH.tree_nodes,GRAPH.tree_edges,'tree'); scene.add(groups.parallel.group); scene.add(groups.tree.group); groups.tree.group.visible=false; setupEvents(); applyTheme(themeName); applyMode(); if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>rebuildLabelTextures()); animate();
 }
-function drawGrid(){const g=new THREE.Group(); g.name='grid'; const matY=new THREE.LineBasicMaterial({color:0x2b3b56,transparent:true,opacity:.55}),matR=new THREE.LineBasicMaterial({color:0x203049,transparent:true,opacity:.35}); for(let y=1880;y<=2025;y+=10){const x=yearToX(y); g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x,noToY(1),0),new THREE.Vector3(x,noToY(153),0)]),matY));} for(let no=1;no<=153;no++){const yy=noToY(no); g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(yearToX(YEAR_MIN),yy,0),new THREE.Vector3(yearToX(YEAR_MAX),yy,0)]),matR));} scene.add(g);}
+function drawGrid(){const g=new THREE.Group(); g.name='grid'; const matY=new THREE.LineBasicMaterial({color:0x2b3b56,transparent:true,opacity:.55}),matR=new THREE.LineBasicMaterial({color:0x203049,transparent:true,opacity:.35}); for(let y=1880;y<=2025;y+=10){const x=yearToX(y),line=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x,noToY(1),0),new THREE.Vector3(x,noToY(153),0)]),matY);line.userData={gridYear:y};g.add(line);} for(let no=1;no<=153;no++){const yy=noToY(no),line=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(yearToX(YEAR_MIN),yy,0),new THREE.Vector3(yearToX(YEAR_MAX),yy,0)]),matR);line.userData={rowNo:no};g.add(line);} scene.add(g);}
 function edgePoints(a,b){return [new THREE.Vector3(a.x,a.y,a.z||0),new THREE.Vector3(b.x,b.y,b.z||0)]}
 function addHighlightCylinder(a,b,r=2.4,color=0xfff3a0){
   const start=new THREE.Vector3(a.x,a.y,a.z||0), end=new THREE.Vector3(b.x,b.y,b.z||0);
@@ -218,7 +219,7 @@ function clearHighlightOverlays(){ for(const o of highlightOverlays){ if(o.paren
 
 function buildGroup(nodes,edges,kind){
   const group=new THREE.Group(); group.name=kind; const map=new Map(), adjacency=new Map(), reverseAdjacency=new Map(), nodeMeshMap=new Map(), labelMap=new Map(), barMap=new Map(); const nodeObjs=[],labelObjs=[],edgeObjs=[],barObjs=[];
-  for(const n of nodes){ n.x=Number(n.x ?? yearToX(n.display_year||n.year||YEAR_MIN)); n.y=Number(n.y ?? noToY(n.no||0)); n.z=Number(n.z||0); map.set(n.id,n); }
+  for(const n of nodes){ n.x=Number(n.x ?? yearToX(n.display_year||n.year||YEAR_MIN)); n.y=Number(n.y ?? noToY(n.no||0)); n.z=Number(n.z||0); n._baseX=n.x; n._baseY=n.y; n._baseZ=n.z; map.set(n.id,n); }
   for(const e of edges){ if(map.has(e.source) && map.has(e.target)){ if(!adjacency.has(e.source)) adjacency.set(e.source,[]); adjacency.get(e.source).push(e); if(!reverseAdjacency.has(e.target)) reverseAdjacency.set(e.target,[]); reverseAdjacency.get(e.target).push(e); } }
   for(const e of edges){ const a=map.get(e.source),b=map.get(e.target); if(!a||!b) continue; const c=edgeColor(e); const baseOpacity=e.type==='国立銀行間合流'?.24:.58; const mat=new THREE.LineBasicMaterial({color:c,transparent:true,opacity:baseOpacity}); const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints(edgePoints(a,b)),mat); line.userData={edge:e,edgeKey:edgeKey(e),branch:e.type!=='主系譜',baseColor:c,baseOpacity}; group.add(line); edgeObjs.push(line); const dir=new THREE.Vector3(b.x-a.x,b.y-a.y,(b.z||0)-(a.z||0)); const len=dir.length(); if(len>1){dir.normalize(); const cone=new THREE.Mesh(new THREE.ConeGeometry(e.type==='主系譜'?1.7:2.1,e.type==='主系譜'?4.8:6.0,10),new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:e.type==='国立銀行間合流'?.22:.62})); cone.position.set(b.x-dir.x*4,b.y-dir.y*4,(b.z||0)-dir.z*4); cone.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir); cone.userData={edge:e,edgeKey:edgeKey(e),branch:e.type!=='主系譜',baseColor:c,baseOpacity:e.type==='国立銀行間合流'?.22:.62}; group.add(cone); edgeObjs.push(cone);} }
   const sphere=new THREE.SphereGeometry(kind==='tree'?3.5:2.8,18,12), box=new THREE.BoxGeometry(5.4,5.4,5.4);
@@ -227,6 +228,118 @@ function buildGroup(nodes,edges,kind){
     const lab=(n.type==='国立銀行' && kind==='parallel')?`${n.no}. ${n.label}`:(n.label||''); const tt=makeTextTexture(lab,n.type==='商号変更'?'#fff0b8':'#f3f4f6',n.branch?'rgba(24,22,31,.84)':'rgba(7,9,12,.80)'); const spr=new THREE.Sprite(new THREE.SpriteMaterial({map:tt.tex,transparent:true,opacity:n.branch?.85:.92,depthWrite:false})); spr.position.set(n.x+7,n.y+2,(n.z||0)+4); spr.scale.set(tt.w/12,tt.h/12,1); spr.userData={node:n,branch:!!n.branch,isLabel:true,kind,labelText:lab,labelPxW:tt.w,labelPxH:tt.h,baseOpacity:n.branch?.85:.92,baseScaleX:spr.scale.x,baseScaleY:spr.scale.y}; group.add(spr); labelObjs.push(spr); labelMap.set(n.id,spr);
   }
   return {group,map,adjacency,reverseAdjacency,edges,nodeObjs,labelObjs,edgeObjs,barObjs,nodeMeshMap,labelMap,barMap};
+}
+function parallelNodeNo(n){
+  const v=Number(n&&(n.no??n.no_min??n.no_max));
+  return Number.isFinite(v)?v:null;
+}
+function parallelRowY(no){
+  const y=noToY(no);
+  return parallelBranchExpansion && Number(no)>parallelBranchExpansion.hostNo ? y-parallelBranchExpansion.extraHeight : y;
+}
+function syncParallelNodePosition(n){
+  const set=groups.parallel;if(!set||!n)return;
+  const mesh=set.nodeMeshMap.get(n.id),bar=set.barMap.get(n.id),spr=set.labelMap.get(n.id);
+  if(mesh)mesh.position.set(n.x,n.y,n.z||0);
+  if(bar)bar.position.set(n.x,n.y,(bar.userData.metricHeight||.5)/2);
+  if(spr)spr.position.set(n.x+7,n.y+2,(n.z||0)+4);
+}
+function refreshParallelEdgeGeometry(){
+  const set=groups.parallel;if(!set)return;
+  for(const obj of set.edgeObjs){
+    const e=obj.userData&&obj.userData.edge;if(!e)continue;
+    const a=set.map.get(e.source),b=set.map.get(e.target);if(!a||!b)continue;
+    if(obj.type==='Line'){
+      obj.geometry.setFromPoints(edgePoints(a,b));
+      if(obj.geometry.computeBoundingSphere)obj.geometry.computeBoundingSphere();
+    }else{
+      const dir=new THREE.Vector3(b.x-a.x,b.y-a.y,(b.z||0)-(a.z||0)),len=dir.length();
+      if(len>.1){dir.normalize();obj.position.set(b.x-dir.x*4,b.y-dir.y*4,(b.z||0)-dir.z*4);obj.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir);}
+    }
+  }
+}
+function refreshParallelGridGeometry(){
+  const g=scene&&scene.getObjectByName('grid');if(!g)return;
+  for(const line of g.children){
+    if(line.userData&&line.userData.rowNo){
+      const y=parallelRowY(line.userData.rowNo);
+      line.geometry.setFromPoints([new THREE.Vector3(yearToX(YEAR_MIN),y,0),new THREE.Vector3(yearToX(YEAR_MAX),y,0)]);
+    }else if(line.userData&&line.userData.gridYear){
+      const x=yearToX(line.userData.gridYear);
+      line.geometry.setFromPoints([new THREE.Vector3(x,parallelRowY(1),0),new THREE.Vector3(x,parallelRowY(153),0)]);
+    }
+    if(line.geometry&&line.geometry.computeBoundingSphere)line.geometry.computeBoundingSphere();
+  }
+}
+function resetParallelBranchExpansion(){
+  const set=groups.parallel;
+  parallelBranchExpansion=null;
+  if(!set)return;
+  for(const n of set.map.values()){
+    n.x=Number(n._baseX??n.x);n.y=Number(n._baseY??n.y);n.z=Number(n._baseZ??n.z);
+    syncParallelNodePosition(n);
+  }
+  refreshParallelEdgeGeometry();
+  refreshParallelGridGeometry();
+}
+function branchComponentFromSeed(set,seedId){
+  const ids=new Set(),stack=[seedId];let guard=0;
+  while(stack.length&&guard++<10000){
+    const id=stack.pop();if(ids.has(id))continue;
+    const n=set.map.get(id);if(!n||!n.branch)continue;
+    ids.add(id);
+    for(const e of (set.adjacency.get(id)||[])){const t=set.map.get(e.target);if(t&&t.branch&&!ids.has(t.id))stack.push(t.id);}
+    for(const e of (set.reverseAdjacency.get(id)||[])){const a=set.map.get(e.source);if(a&&a.branch&&!ids.has(a.id))stack.push(a.id);}
+  }
+  return ids;
+}
+function findParallelBranchLanes(startId){
+  const set=groups.parallel,start=set&&set.map.get(startId);if(!set||!start)return null;
+  const seeds=[];
+  if(start.branch)seeds.push(start.id);
+  for(const e of (set.reverseAdjacency.get(start.id)||[])){const a=set.map.get(e.source);if(a&&a.branch)seeds.push(a.id);}
+  for(const e of (set.adjacency.get(start.id)||[])){const b=set.map.get(e.target);if(b&&b.branch)seeds.push(b.id);}
+  if(!seeds.length)return null;
+  const comps=[],seen=new Set();
+  for(const seed of seeds){
+    if(seen.has(seed))continue;
+    const ids=branchComponentFromSeed(set,seed);if(!ids.size)continue;
+    for(const id of ids)seen.add(id);
+    const nodes=[...ids].map(id=>set.map.get(id)).filter(Boolean).sort((a,b)=>nodeYear(a)-nodeYear(b)||(a._baseZ||0)-(b._baseZ||0));
+    const first=nodes.find(n=>n.type==='合併相手開始')||nodes[0];
+    const label=String(first&&first.label||'支流').replace(/（開始年未精査）|（開始）|（第\d+系）/g,'');
+    const z=Math.min(...nodes.map(n=>Number(n._baseZ||0)));
+    comps.push({ids,label,z,firstYear:nodeYear(first)});
+  }
+  if(!comps.length)return null;
+  comps.sort((a,b)=>a.z-b.z||a.firstYear-b.firstYear||a.label.localeCompare(b.label,'ja'));
+  const hostNo=parallelNodeNo(start)??parallelNodeNo(set.map.get(seeds[0]));
+  return Number.isFinite(hostNo)?{hostNo,lanes:comps}:null;
+}
+function setParallelBranchExpansion(startId){
+  resetParallelBranchExpansion();
+  const spec=findParallelBranchLanes(startId);if(!spec)return;
+  const set=groups.parallel,laneGap=Math.max(7.6,Y_GAP*.82),extraHeight=laneGap*spec.lanes.length+Math.max(1.8,Y_GAP*.18);
+  const revealedIds=new Set();
+  parallelBranchExpansion={selectedId:startId,hostNo:spec.hostNo,laneGap,extraHeight,lanes:[],revealedIds};
+  for(const n of set.map.values()){
+    const no=parallelNodeNo(n);
+    n.y=Number(n._baseY??n.y)-(no!==null&&no>spec.hostNo?extraHeight:0);
+    n.z=Number(n._baseZ??n.z);
+  }
+  spec.lanes.forEach((lane,i)=>{
+    const y=noToY(spec.hostNo)-laneGap*(i+1);
+    const info={label:lane.label,y,ids:lane.ids};
+    parallelBranchExpansion.lanes.push(info);
+    for(const id of lane.ids){
+      revealedIds.add(id);
+      const n=set.map.get(id);if(!n)continue;
+      n.y=y;n.z=0;
+    }
+  });
+  for(const n of set.map.values())syncParallelNodePosition(n);
+  refreshParallelEdgeGeometry();
+  refreshParallelGridGeometry();
 }
 function setDockOpen(dockId,tabId,open){const dock=document.getElementById(dockId),tab=document.getElementById(tabId);if(!dock||!tab)return;dock.classList.toggle('closed',!open);tab.setAttribute('aria-expanded',open?'true':'false');}
 function toggleDock(dockId,tabId){const dock=document.getElementById(dockId);if(!dock)return;setDockOpen(dockId,tabId,dock.classList.contains('closed'));}
@@ -315,6 +428,7 @@ function baseNodeVisible(n){
 function setPathHighlight(startId,pinned=false){
   if(hoverNodeId===startId) { updateRowLabels(); return; }
   clearPathHighlight(true);
+  if(pinned&&activeLayout==='parallel')setParallelBranchExpansion(startId);
   const set=activeSet(),hi=highlightColors(); hoverNodeId=startId;
   const path=computeHighlightPath(set,startId); hoverPathIds=path.ids; hoverPathEdgeKeys=path.edgeKeys; hoverLatestYear=path.latestYear;
   const showBranches=document.getElementById('toggleBranches').checked;
@@ -367,7 +481,7 @@ function setPathHighlight(startId,pinned=false){
   }
   updateRowLabels();
 }
-function clearPathHighlight(keepLock=false){clearHighlightOverlays();if(!keepLock)lockedNodeId=null;const set=activeSet();if(set){for(const mesh of set.nodeObjs){const c=mesh.userData.baseColor;mesh.material.color.setHex(c);mesh.material.emissive.setHex(c);mesh.material.emissiveIntensity=mesh.userData.baseEmissiveIntensity||.07;mesh.scale.setScalar(searchTerm&&qMatchesNode(mesh.userData.node)?1.8:1);mesh.material.opacity=searchTerm&&qMatchesNode(mesh.userData.node)?1:mesh.userData.baseOpacity;mesh.renderOrder=0;}for(const bar of set.barObjs){const c=bar.userData.baseColor;bar.material.color.setHex(c);bar.material.emissive.setHex(c);bar.material.emissiveIntensity=.04;bar.material.opacity=bar.userData.baseOpacity;bar.renderOrder=0;}for(const spr of set.labelObjs){spr.material.opacity=spr.userData.baseOpacity;spr.material.color.setHex(0xffffff);const bx=spr.userData.baseScaleX||spr.scale.x,by=spr.userData.baseScaleY||spr.scale.y;spr.scale.set(bx,by,1);spr.renderOrder=0;}for(const obj of set.edgeObjs){obj.material.color.setHex(obj.userData.baseColor||0x536a91);obj.material.opacity=obj.userData.baseOpacity??.58;if(obj.type==='Line')obj.renderOrder=0;else obj.scale.setScalar(1);}}hoverNodeId=null;hoverPathIds=new Set();hoverPathEdgeKeys=new Set();hoverLatestYear=null;hoverAccentId=null;applyFilters();updateRowLabels();}
+function clearPathHighlight(keepLock=false){clearHighlightOverlays();resetParallelBranchExpansion();if(!keepLock)lockedNodeId=null;const set=activeSet();if(set){for(const mesh of set.nodeObjs){const c=mesh.userData.baseColor;mesh.material.color.setHex(c);mesh.material.emissive.setHex(c);mesh.material.emissiveIntensity=mesh.userData.baseEmissiveIntensity||.07;mesh.scale.setScalar(searchTerm&&qMatchesNode(mesh.userData.node)?1.8:1);mesh.material.opacity=searchTerm&&qMatchesNode(mesh.userData.node)?1:mesh.userData.baseOpacity;mesh.renderOrder=0;}for(const bar of set.barObjs){const c=bar.userData.baseColor;bar.material.color.setHex(c);bar.material.emissive.setHex(c);bar.material.emissiveIntensity=.04;bar.material.opacity=bar.userData.baseOpacity;bar.renderOrder=0;}for(const spr of set.labelObjs){spr.material.opacity=spr.userData.baseOpacity;spr.material.color.setHex(0xffffff);const bx=spr.userData.baseScaleX||spr.scale.x,by=spr.userData.baseScaleY||spr.scale.y;spr.scale.set(bx,by,1);spr.renderOrder=0;}for(const obj of set.edgeObjs){obj.material.color.setHex(obj.userData.baseColor||0x536a91);obj.material.opacity=obj.userData.baseOpacity??.58;if(obj.type==='Line')obj.renderOrder=0;else obj.scale.setScalar(1);}}hoverNodeId=null;hoverPathIds=new Set();hoverPathEdgeKeys=new Set();hoverLatestYear=null;hoverAccentId=null;applyFilters();updateRowLabels();}
 function safeSourceUrl(url){
   const raw=String(url??'').trim();
   if(!raw) return '';
@@ -696,7 +810,40 @@ function updateAxis(){
     const sp=document.createElement('span'); sp.textContent=y; d.appendChild(sp); axis.appendChild(d);
   }
 }
-function updateRowLabels(){const layout=overlayLayout(),c=document.getElementById('rowLabels');c.innerHTML='';if(activeLayout!=='parallel')return;const pathNos=new Set();if(hoverPathIds&&hoverPathIds.size){const set=activeSet();for(const id of hoverPathIds){const n=set.map.get(id);if(!n)continue;if(n.no)pathNos.add(Number(n.no));else if(n.no_min&&n.no_max){const a=Number(n.no_min),b=Number(n.no_max);if(Number.isFinite(a)&&Number.isFinite(b)&&Math.abs(b-a)<=16){for(let k=a;k<=b;k++)pathNos.add(k);}else{if(Number.isFinite(a))pathNos.add(a);if(Number.isFinite(b))pathNos.add(b);}}}}const minGap=({sparse:18,standard:14,dense:10}[labelDensity]||14)*uiFontScale;let last=-Infinity;for(let no=1;no<=153;no++){const sy=worldYToFixedScreenY(noToY(no));if(sy<layout.rowsTop-24||sy>window.innerHeight+24)continue;const isActive=pathNos.has(no),hasHighlight=hoverPathIds&&hoverPathIds.size>0;if(!isActive&&sy-last<minGap)continue;const row=GRAPH.nodes.find(n=>n.type==='国立銀行'&&n.no===no),d=document.createElement('div');d.className='rowLabel'+(isActive?' active':(hasHighlight?' dim':''));d.style.top=(sy-layout.rowsTop)+'px';d.textContent=row?(row.row_label||(no+'. '+row.label+(row.place?'（'+row.place+'）':''))):String(no);c.appendChild(d);last=sy;}}
+function updateRowLabels(){
+  const layout=overlayLayout(),c=document.getElementById('rowLabels');c.innerHTML='';
+  const pathNos=new Set();
+  if(hoverPathIds&&hoverPathIds.size){
+    const set=activeSet();
+    for(const id of hoverPathIds){
+      const n=set.map.get(id);if(!n)continue;
+      if(n.no)pathNos.add(Number(n.no));
+      else if(n.no_min&&n.no_max){
+        const a=Number(n.no_min),b=Number(n.no_max);
+        if(Number.isFinite(a)&&Number.isFinite(b)&&Math.abs(b-a)<=16){for(let k=a;k<=b;k++)pathNos.add(k);}
+        else{if(Number.isFinite(a))pathNos.add(a);if(Number.isFinite(b))pathNos.add(b);}
+      }
+    }
+  }
+  const minGap=({sparse:18,standard:14,dense:10}[labelDensity]||14)*uiFontScale;let last=-Infinity;
+  for(let no=1;no<=153;no++){
+    const rowY=(activeLayout==='parallel'?parallelRowY(no):noToY(no)),sy=worldYToFixedScreenY(rowY);
+    if(sy<layout.rowsTop-24||sy>window.innerHeight+24)continue;
+    const isActive=pathNos.has(no),hasHighlight=hoverPathIds&&hoverPathIds.size>0;
+    if(!isActive&&sy-last<minGap)continue;
+    const row=GRAPH.nodes.find(n=>n.type==='国立銀行'&&n.no===no),d=document.createElement('div');
+    d.className='rowLabel'+(isActive?' active':(hasHighlight?' dim':''));
+    d.style.top=(sy-layout.rowsTop)+'px';
+    d.textContent=row?(row.row_label||(no+'. '+row.label+(row.place?'（'+row.place+'）':''))):String(no);
+    c.appendChild(d);last=sy;
+  }
+  if(activeLayout==='parallel'&&parallelBranchExpansion){
+    for(const lane of parallelBranchExpansion.lanes){
+      const sy=worldYToFixedScreenY(lane.y);if(sy<layout.rowsTop-24||sy>window.innerHeight+24)continue;
+      const d=document.createElement('div');d.className='rowLabel branchLane';d.style.top=(sy-layout.rowsTop)+'px';d.textContent='↳ 支流 '+lane.label;c.appendChild(d);
+    }
+  }
+}
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
 function animate(t=0){
   requestAnimationFrame(animate);
