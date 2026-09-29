@@ -92,7 +92,7 @@ let groups={parallel:null,tree:null}, activeLayout='parallel', bars=false;
 let focusLineage=false, selectedNodeHint=null, labelDensity='standard', uiFontScale=1, themeName='black';
 let view={x:(YEAR_MAX-YEAR_MIN)*X_SCALE/2,y:-77*Y_GAP,zoom:.72,pitch:Math.PI/2,yaw:0};
 let isDragging=false,lastX=0,lastY=0,searchTerm='';
-let hoverNodeId=null, hoverPathIds=new Set(), hoverPathEdgeKeys=new Set(), hoverLatestYear=null, highlightOverlays=[], lockedNodeId=null;
+let hoverNodeId=null, hoverPathIds=new Set(), hoverPathEdgeKeys=new Set(), hoverLatestYear=null, highlightOverlays=[], lockedNodeId=null, hoverAccentId=null;
 function yearToX(y){return (y-YEAR_MIN)*X_SCALE} function noToY(no){return -Number(no)*Y_GAP}
 function nodeColor(n){ if((n.accuracy||'').includes('unknown')||(n.accuracy||'').includes('unverified')) return UNKNOWN_COLOR; return COLORS[n.type]||0xb6c5dd; }
 
@@ -229,7 +229,7 @@ function setupEvents(){
   canvas.addEventListener('mousedown',e=>{isDragging=true;lastX=e.clientX;lastY=e.clientY;}); window.addEventListener('mouseup',()=>{isDragging=false;});
   window.addEventListener('mousemove',e=>{ if(isDragging){ const dx=e.clientX-lastX,dy=e.clientY-lastY; const s=screenWorldSize(); view.x-=dx/window.innerWidth*s.w; view.y+=dy/window.innerHeight*s.h; lastX=e.clientX;lastY=e.clientY;setupCamera();updateAxis();updateRowLabels();updateLabelVisibility();} updateHover(e); });
   canvas.addEventListener('wheel',e=>{e.preventDefault(); view.zoom=Math.max(.28,Math.min(9,view.zoom*Math.exp(-e.deltaY*0.0012))); setupCamera(); updateAxis(); updateRowLabels(); updateLabelVisibility();},{passive:false});
-  canvas.addEventListener('click',e=>{const h=pick(e); if(h&&h.object.userData.node){const n=h.object.userData.node; selectedNodeHint=n; lockedNodeId=n.id; setPathHighlight(n.id,true); selectNode(n);} });
+  canvas.addEventListener('click',e=>{const h=pick(e); if(h&&h.object.userData.node){const n=h.object.userData.node; restoreHoverAccent(); selectedNodeHint=n; lockedNodeId=n.id; setPathHighlight(n.id,true); selectNode(n);} });
   document.getElementById('search').addEventListener('input',e=>{clearPathHighlight(); searchTerm=e.target.value.trim().toLowerCase();applyFilters();}); document.getElementById('toggleBranches').addEventListener('change',()=>{clearPathHighlight(); applyFilters();}); document.getElementById('toggleLabels').addEventListener('change',updateLabelVisibility);
   document.getElementById('parallelBtn').addEventListener('click',()=>setDisplayMode('parallel')); document.getElementById('treeBtn').addEventListener('click',()=>setDisplayMode('tree')); document.getElementById('lineageBtn').addEventListener('click',()=>setDisplayMode('lineage')); document.getElementById('barsBtn').addEventListener('click',()=>{bars=!bars; applyMode();}); document.getElementById('metricSelect').addEventListener('change',e=>{activeMetric=e.target.value; updateMetricBars(); applyFilters(); updateStats();}); document.getElementById('metricCsvBtn').addEventListener('click',()=>document.getElementById('metricCsv').click()); document.getElementById('metricCsv').addEventListener('change',e=>{const file=e.target.files&&e.target.files[0]; if(!file)return; const r=new FileReader(); r.onload=()=>applyMetricRows(parseCsv(String(r.result||''))); r.readAsText(file,'utf-8');});
   document.getElementById('detailToggleBtn').addEventListener('click',()=>{const p=document.getElementById('detail'); const hidden=p.classList.toggle('hidden'); document.getElementById('detailToggleBtn').textContent=hidden?'右パネル表示':'右パネル非表示';});
@@ -252,21 +252,45 @@ function labelPriority(n){let p=0;if(lockedNodeId===n.id)p+=1800;if(hoverPathIds
 function activeSet(){return groups[activeLayout];}
 function applyMode(){groups.parallel.group.visible=activeLayout==='parallel';groups.tree.group.visible=activeLayout==='tree';document.getElementById('parallelBtn').classList.toggle('active',activeLayout==='parallel'&&!focusLineage);document.getElementById('treeBtn').classList.toggle('active',activeLayout==='tree'&&!focusLineage);document.getElementById('lineageBtn').classList.toggle('active',focusLineage);document.getElementById('barsBtn').classList.toggle('active',bars);setupCamera();applyFilters();updateStats();}
 function pick(e){const rect=renderer.domElement.getBoundingClientRect(); mouse.x=((e.clientX-rect.left)/rect.width)*2-1; mouse.y=-((e.clientY-rect.top)/rect.height)*2+1; raycaster.setFromCamera(mouse,camera); const set=activeSet(); return raycaster.intersectObjects([...set.nodeObjs,...set.barObjs],false)[0];}
+function hoverBaseScale(id,mesh){
+  const n=mesh&&mesh.userData&&mesh.userData.node;
+  if(hoverPathIds&&hoverPathIds.has(id)) return id===lockedNodeId?3.3:2.35;
+  return (searchTerm&&n&&qMatchesNode(n))?1.8:1;
+}
+function restoreHoverAccent(){
+  if(!hoverAccentId) return;
+  const set=activeSet(), mesh=set&&set.nodeMeshMap&&set.nodeMeshMap.get(hoverAccentId);
+  if(mesh){
+    const inPath=hoverPathIds&&hoverPathIds.has(hoverAccentId);
+    mesh.scale.setScalar(hoverBaseScale(hoverAccentId,mesh));
+    const base=mesh.userData.baseColor||0xb6c5dd;
+    mesh.material.color.setHex(inPath?0xfff06a:base);
+    mesh.material.emissive.setHex(inPath?0xffd54a:base);
+    mesh.material.emissiveIntensity=inPath?.95:(mesh.userData.baseEmissiveIntensity||.07);
+  }
+  hoverAccentId=null;
+}
+function setHoverAccent(id){
+  if(hoverAccentId===id) return;
+  restoreHoverAccent();
+  hoverAccentId=id;
+}
 function updateHover(e){
   const h=pick(e),tip=document.getElementById('tooltip');
+  // 情報はクリックしたノードのパネルに固定し、ホバーでは内容を切り替えない。
+  tip.style.display='none';
   if(h&&h.object.userData.node){
     const n=h.object.userData.node;
-    if(!lockedNodeId || lockedNodeId===n.id) setPathHighlight(n.id,!!lockedNodeId);
-    tip.style.display='block'; tip.style.left=(e.clientX+14)+'px'; tip.style.top=(e.clientY+14)+'px';
-    const count=Math.max(0,hoverPathIds.size-1);
-    const lockedMsg=lockedNodeId?'<br><span style="color:#9ee8ff">クリック固定中：別のノードをクリックすると切替</span>':'';
-    const pathMsg=(activeLayout==='tree')
-      ? `過去から未来まで強調 / 最新到達年 ${hoverLatestYear||'—'} 年 / ${count}ノード`
-      : `最新到達年 ${hoverLatestYear||'—'} 年まで: ${count}ノードを強調`;
-    tip.innerHTML=`<b>${esc(n.label)}</b><br>${n.display_year||n.year_min||n.year}年｜${esc(n.type)}<br>${esc(metricText(n,activeMetric))}<br><span style="color:#ffe28a">${pathMsg}</span>${lockedMsg}<br>${esc((n.memo||'').slice(0,105))}${(n.memo||'').length>105?'…':''}`;
-  } else {
-    tip.style.display='none';
-    if(!lockedNodeId) clearPathHighlight();
+    if(lockedNodeId){
+      // クリック固定中も、別ノードにカーソルを置いたときの強調アニメーションだけは維持する。
+      setHoverAccent(n.id);
+    }else{
+      restoreHoverAccent();
+      setPathHighlight(n.id,false);
+    }
+  }else{
+    if(lockedNodeId) restoreHoverAccent();
+    else clearPathHighlight();
   }
 }
 function baseNodeVisible(n){
@@ -328,18 +352,66 @@ function setPathHighlight(startId,pinned=false){
   }
   updateRowLabels();
 }
-function clearPathHighlight(keepLock=false){clearHighlightOverlays();if(!keepLock)lockedNodeId=null;const set=activeSet();if(set){for(const mesh of set.nodeObjs){const c=mesh.userData.baseColor;mesh.material.color.setHex(c);mesh.material.emissive.setHex(c);mesh.material.emissiveIntensity=mesh.userData.baseEmissiveIntensity||.07;mesh.scale.setScalar(searchTerm&&qMatchesNode(mesh.userData.node)?1.8:1);mesh.material.opacity=searchTerm&&qMatchesNode(mesh.userData.node)?1:mesh.userData.baseOpacity;mesh.renderOrder=0;}for(const bar of set.barObjs){const c=bar.userData.baseColor;bar.material.color.setHex(c);bar.material.emissive.setHex(c);bar.material.emissiveIntensity=.04;bar.material.opacity=bar.userData.baseOpacity;bar.renderOrder=0;}for(const spr of set.labelObjs){spr.material.opacity=spr.userData.baseOpacity;spr.material.color.setHex(0xffffff);const bx=spr.userData.baseScaleX||spr.scale.x,by=spr.userData.baseScaleY||spr.scale.y;spr.scale.set(bx,by,1);spr.renderOrder=0;}for(const obj of set.edgeObjs){obj.material.color.setHex(obj.userData.baseColor||0x536a91);obj.material.opacity=obj.userData.baseOpacity??.58;if(obj.type==='Line')obj.renderOrder=0;else obj.scale.setScalar(1);}}hoverNodeId=null;hoverPathIds=new Set();hoverPathEdgeKeys=new Set();hoverLatestYear=null;applyFilters();updateRowLabels();}
+function clearPathHighlight(keepLock=false){clearHighlightOverlays();if(!keepLock)lockedNodeId=null;const set=activeSet();if(set){for(const mesh of set.nodeObjs){const c=mesh.userData.baseColor;mesh.material.color.setHex(c);mesh.material.emissive.setHex(c);mesh.material.emissiveIntensity=mesh.userData.baseEmissiveIntensity||.07;mesh.scale.setScalar(searchTerm&&qMatchesNode(mesh.userData.node)?1.8:1);mesh.material.opacity=searchTerm&&qMatchesNode(mesh.userData.node)?1:mesh.userData.baseOpacity;mesh.renderOrder=0;}for(const bar of set.barObjs){const c=bar.userData.baseColor;bar.material.color.setHex(c);bar.material.emissive.setHex(c);bar.material.emissiveIntensity=.04;bar.material.opacity=bar.userData.baseOpacity;bar.renderOrder=0;}for(const spr of set.labelObjs){spr.material.opacity=spr.userData.baseOpacity;spr.material.color.setHex(0xffffff);const bx=spr.userData.baseScaleX||spr.scale.x,by=spr.userData.baseScaleY||spr.scale.y;spr.scale.set(bx,by,1);spr.renderOrder=0;}for(const obj of set.edgeObjs){obj.material.color.setHex(obj.userData.baseColor||0x536a91);obj.material.opacity=obj.userData.baseOpacity??.58;if(obj.type==='Line')obj.renderOrder=0;else obj.scale.setScalar(1);}}hoverNodeId=null;hoverPathIds=new Set();hoverPathEdgeKeys=new Set();hoverLatestYear=null;hoverAccentId=null;applyFilters();updateRowLabels();}
+function safeSourceUrl(url){
+  try{
+    const u=new URL(String(url||''),location.href);
+    return (u.protocol==='https:'||u.protocol==='http:')?u.href:'';
+  }catch(_){ return ''; }
+}
+function linkHtml(url,label='開く'){
+  const u=safeSourceUrl(url);
+  return u?`<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(label)}</a>`:'';
+}
+const CORE_SOURCE_LINKS=[
+  {label:'全国銀行協会「銀行変遷史データベース」',url:'https://www.zenginkyo.or.jp/library/hensen/',note:'設立・合併・営業譲渡・解散・商号変更などの銀行沿革'},
+  {label:'日本銀行「第一銀行、七十七銀行など、数字の付いた銀行名の由来は何ですか？」',url:'https://www.boj.or.jp/about/education/oshiete/history/j11.htm',note:'国立銀行制度、番号、153行に関する基礎資料'}
+];
+function collectNodeSourceLinks(n,mo){
+  const out=[],seen=new Set();
+  const push=(label,url,note='')=>{
+    const u=safeSourceUrl(url);
+    if(!u||seen.has(u)) return;
+    seen.add(u); out.push({label:label||u,url:u,note});
+  };
+  // ノード固有URLがある場合は最優先。
+  push(n.source||'ノード固有出典',n.source_url||n.url||'','このノードの沿革情報');
+  // 選択中の指標に紐づく出典。
+  push(mo&&mo.source||'指標出典',mo&&mo.source_url||'','選択中の規模指標');
+  // 現在/後身銀行についてGRAPH.metaに登録済みの一次・参照元リンク。
+  const finance=(GRAPH.meta&&GRAPH.meta.financial_metric_sources)||{};
+  const raw=String(n.current||'').trim();
+  const names=[raw,...raw.split(/[／/]/)].map(s=>s.replace(/等$/,'').trim()).filter(Boolean);
+  for(const name of [...new Set(names)]){
+    const s=finance[name];
+    if(s&&s.url) push(s.source||name,s.url,'現在/後身銀行の会社概要・指標参照元');
+  }
+  // 歴史変遷の共通原典。
+  for(const s of CORE_SOURCE_LINKS) push(s.label,s.url,s.note);
+  if(n.no===1 || n.no_min===1 || /第一国立銀行/.test(String(n.label||''))){
+    push('日本銀行「日本で最初にできた銀行はどこですか？」','https://www.boj.or.jp/about/education/oshiete/history/j10.htm','第一国立銀行に関する日本銀行の解説');
+  }
+  return out;
+}
+function sourceLinksHtml(n,mo){
+  const links=collectNodeSourceLinks(n,mo);
+  if(!links.length) return '';
+  const items=links.map(s=>`<li style="margin:0 0 9px 0;"><a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.label)}</a>${s.note?`<div style="margin-top:2px;color:var(--muted);font-size:10.5px;line-height:1.45;">${esc(s.note)}</div>`:''}<div style="margin-top:2px;color:var(--muted);font-size:9.5px;line-height:1.35;word-break:break-all;">${esc(s.url)}</div></li>`).join('');
+  return `<div class="meta" style="margin-top:13px;padding-top:11px;border-top:1px solid var(--border);"><b style="color:var(--text);">出典・原典リンク</b><ol style="margin:8px 0 0 18px;padding:0;">${items}</ol></div>`;
+}
 function selectNode(n){
   const warn=((n.accuracy||'').includes('unknown')||(n.accuracy||'').includes('unverified'))?'<div class="warn">※開始年または直前名が未精査です。表示位置・支流名は暫定です。</div>':'';
   const ref=n.ref_no?`<span class="pill">第${n.ref_no}系譜参照</span>`:'';
   const members=n.member_count?`<span class="pill">統合元 ${n.member_count}ノード</span>`:'';
   const rowInfo=n.row_label||((n.no_min&&n.no_max)?`${n.no_min}〜${n.no_max}`:(n.no||'—'));
   const mo=metricObj(n,activeMetric)||{};
-  const metricSource=mo.source_url?`${esc(mo.source||'指標出典')}：${linkHtml(mo.source_url,'開く')}`:esc(mo.source||'');
+  const metricSource=mo.source_url?`${esc(mo.source||'指標出典')}：${linkHtml(mo.source_url,'元情報を開く')}`:esc(mo.source||'');
   const baseSourceUrl=(n.source_url||n.url||'');
-  const baseSource=baseSourceUrl?`${esc(n.source||GRAPH.meta.source_note)}：${linkHtml(baseSourceUrl,'開く')}`:esc(n.source||GRAPH.meta.source_note);
+  const baseSource=baseSourceUrl?`${esc(n.source||GRAPH.meta.source_note)}：${linkHtml(baseSourceUrl,'元情報を開く')}`:esc(n.source||GRAPH.meta.source_note);
   const panel=document.getElementById('detail');
-  panel.innerHTML=`<h3>${esc(n.label)}</h3><div class="meta"><span class="pill">${esc(n.type)}</span><span class="pill">${n.display_year||n.year||n.year_min}</span>${ref}${members}<br>行・所在地: ${esc(rowInfo)}<br>現在/後身: ${esc(n.current||'—')}<br>${esc(metricText(n,activeMetric))}<br><span style="color:#c7d1e6">${esc((mo.note||''))}</span><br><span style="color:#c7d1e6">${metricSource}</span><br>精度: ${esc(n.accuracy||'exact')}</div>${warn}<div class="memo">${esc(n.memo||'')}</div><div class="meta" style="margin-top:10px;">出典メモ: ${baseSource}</div>`;
+  panel.classList.remove('hidden');
+  const toggle=document.getElementById('detailToggleBtn'); if(toggle) toggle.textContent='右パネル非表示';
+  panel.innerHTML=`<h3>${esc(n.label)}</h3><div class="meta"><span class="pill">${esc(n.type)}</span><span class="pill">${n.display_year||n.year||n.year_min}</span>${ref}${members}<br>行・所在地: ${esc(rowInfo)}<br>現在/後身: ${esc(n.current||'—')}<br>${esc(metricText(n,activeMetric))}<br><span style="color:#c7d1e6">${esc((mo.note||''))}</span><br><span style="color:#c7d1e6">${metricSource}</span><br>精度: ${esc(n.accuracy||'exact')}</div>${warn}<div class="memo">${esc(n.memo||'')}</div><div class="meta" style="margin-top:10px;">出典メモ: ${baseSource}</div>${sourceLinksHtml(n,mo)}`;
 }
 
 
@@ -421,7 +493,19 @@ function updateAxis(){
 }
 function updateRowLabels(){const layout=overlayLayout(),c=document.getElementById('rowLabels');c.innerHTML='';if(activeLayout!=='parallel')return;const pathNos=new Set();if(hoverPathIds&&hoverPathIds.size){const set=activeSet();for(const id of hoverPathIds){const n=set.map.get(id);if(!n)continue;if(n.no)pathNos.add(Number(n.no));else if(n.no_min&&n.no_max){const a=Number(n.no_min),b=Number(n.no_max);if(Number.isFinite(a)&&Number.isFinite(b)&&Math.abs(b-a)<=16){for(let k=a;k<=b;k++)pathNos.add(k);}else{if(Number.isFinite(a))pathNos.add(a);if(Number.isFinite(b))pathNos.add(b);}}}}const minGap=({sparse:18,standard:14,dense:10}[labelDensity]||14)*uiFontScale;let last=-Infinity;for(let no=1;no<=153;no++){const sy=worldYToFixedScreenY(noToY(no));if(sy<layout.rowsTop-24||sy>window.innerHeight+24)continue;const isActive=pathNos.has(no),hasHighlight=hoverPathIds&&hoverPathIds.size>0;if(!isActive&&sy-last<minGap)continue;const row=GRAPH.nodes.find(n=>n.type==='国立銀行'&&n.no===no),d=document.createElement('div');d.className='rowLabel'+(isActive?' active':(hasHighlight?' dim':''));d.style.top=(sy-layout.rowsTop)+'px';d.textContent=row?(row.row_label||(no+'. '+row.label+(row.place?'（'+row.place+'）':''))):String(no);c.appendChild(d);last=sy;}}
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
-function animate(){requestAnimationFrame(animate); renderer.render(scene,camera); updateAxis(); updateRowLabels();}
+function animate(t=0){
+  requestAnimationFrame(animate);
+  if(hoverAccentId){
+    const set=activeSet(),mesh=set&&set.nodeMeshMap&&set.nodeMeshMap.get(hoverAccentId);
+    if(mesh&&mesh.visible){
+      const base=hoverBaseScale(hoverAccentId,mesh);
+      const pulse=1.13+Math.sin(t*.007)*.09;
+      mesh.scale.setScalar(base*pulse);
+      mesh.material.emissiveIntensity=Math.max(mesh.material.emissiveIntensity||0,.42+Math.sin(t*.007)*.12);
+    }
+  }
+  renderer.render(scene,camera); updateAxis(); updateRowLabels();
+}
 init();
 </script>
 </body>
