@@ -35,31 +35,40 @@ button:hover,label.check:hover { background:rgba(255,255,255,.14); } label.check
 @media (max-width:1000px) { #detail { width:310px; max-width:42vw; } #search { width:170px; } #help { display:none; } #legend { width:230px; } }
 
 :root{--bg:#050607;--panel:rgba(13,15,18,.88);--panel-soft:rgba(18,20,24,.72);--text:#f2f3f5;--muted:#a8adb7;--axis:#d9dde5;--accent:#a7d8ef;--border:rgba(255,255,255,.11);--control:rgba(255,255,255,.055);--control-hover:rgba(255,255,255,.095);--ui-font-scale:1}
-html[data-theme="midnight"]{--bg:#0d1420;--panel:rgba(15,23,36,.90);--panel-soft:rgba(16,24,38,.76);--text:#eef3ff;--muted:#aeb9ce;--axis:#d8e2f3;--border:rgba(255,255,255,.12);--control:rgba(255,255,255,.065);--control-hover:rgba(255,255,255,.11)}
-html[data-theme="light"]{--bg:#f4f5f7;--panel:rgba(255,255,255,.91);--panel-soft:rgba(255,255,255,.78);--text:#1d232d;--muted:#667080;--axis:#333d4a;--border:rgba(25,35,48,.13);--control:rgba(20,30,45,.055);--control-hover:rgba(20,30,45,.09)}
-html[data-theme="paper"]{--bg:#eee9df;--panel:rgba(250,247,239,.92);--panel-soft:rgba(250,247,239,.80);--text:#292620;--muted:#746e63;--axis:#49443c;--border:rgba(55,48,38,.14);--control:rgba(60,50,35,.055);--control-hover:rgba(60,50,35,.095)}
+html[data-theme="light"]{--bg:#ffffff;--panel:rgba(255,255,255,.94);--panel-soft:rgba(255,255,255,.82);--text:#1d232d;--muted:#667080;--axis:#333d4a;--border:rgba(25,35,48,.14);--control:rgba(20,30,45,.055);--control-hover:rgba(20,30,45,.09)}
 html,body{background:var(--bg)!important;color:var(--text)!important;font-family:"Inter","Noto Sans JP","Hiragino Sans","Yu Gothic",Meiryo,sans-serif!important;font-feature-settings:"palt" 1;font-kerning:normal;letter-spacing:.012em}
 #topbar{gap:7px!important;padding:8px 10px!important;background:linear-gradient(180deg,rgba(5,6,7,.96),rgba(5,6,7,.78))!important;border-color:var(--border)!important;box-shadow:none!important}
-html[data-theme="light"] #topbar,html[data-theme="paper"] #topbar{background:var(--panel)!important}
+html[data-theme="light"] #topbar{background:rgba(255,255,255,.94)!important;backdrop-filter:blur(10px)}
 #brand{display:flex;align-items:center;gap:8px;min-width:0;margin-right:3px}#title{font-weight:600!important;font-size:15px!important;letter-spacing:.015em!important;margin:0!important}#titleSub{font-size:10px;color:var(--muted);font-weight:400;white-space:nowrap;margin-left:2px}
 .toolbarGroup{display:flex;align-items:center;gap:5px;min-width:0}.toolbarDivider{width:1px;height:24px;background:var(--border);margin:0 2px}
 #topbar button,#topbar select,#topbar input:not([type]){font:500 12px/1.2 "Inter","Noto Sans JP",sans-serif!important;letter-spacing:.01em;background:var(--control)!important;color:var(--text)!important;border:1px solid var(--border)!important;border-radius:9px!important;box-shadow:none!important}
 #topbar button{padding:7px 9px!important;min-height:32px;transition:background .15s ease,border-color .15s ease}#topbar button:hover{background:var(--control-hover)!important}#topbar button.active{background:rgba(167,216,239,.14)!important;border-color:rgba(167,216,239,.46)!important}
-#topbar select{height:32px;padding:0 25px 0 8px}#search{width:230px!important;max-width:24vw!important;height:32px;padding:0 10px!important}
+#search{width:230px!important;max-width:24vw!important;height:32px;padding:0 10px!important}
 #qrBtn{width:32px;height:32px;display:grid!important;place-items:center;padding:0!important;flex:0 0 32px}#qrBtn svg{width:17px;height:17px;display:block}
-#bgColor{width:32px;height:32px;padding:4px!important;border:1px solid var(--border);border-radius:9px;background:var(--control);cursor:pointer}#bgColor::-webkit-color-swatch-wrapper{padding:0}#bgColor::-webkit-color-swatch{border:0;border-radius:6px}
 #stats{background:var(--panel-soft)!important;color:var(--muted)!important;border:1px solid var(--border);backdrop-filter:blur(8px);font-size:10px!important}
 #legend,#detail,#help{background:var(--panel)!important;border-color:var(--border)!important;box-shadow:0 10px 28px rgba(0,0,0,.16)!important;backdrop-filter:blur(12px)}
 #legend{width:250px!important;border-radius:12px!important;padding:9px 11px!important}#legend h3,#detail h3{font-weight:600!important;letter-spacing:.02em}.legendItem{font-size:11px!important;color:var(--muted)!important;margin:4px 0!important}#detail{border-radius:12px!important}
 #help{left:274px!important;max-width:610px!important;border-radius:11px!important;padding:8px 10px!important;font-size:10.5px!important;line-height:1.55!important}
 .rowLabel{font-family:"Inter","Noto Sans JP",sans-serif!important;font-size:calc(10.5px * var(--ui-font-scale))!important;font-weight:400;letter-spacing:.01em!important;color:var(--text)!important;opacity:.78;text-shadow:0 1px 2px rgba(0,0,0,.8)!important}.rowLabel.active{font-size:calc(12px * var(--ui-font-scale))!important;font-weight:600!important;background:rgba(167,216,239,.12)!important;color:var(--text)!important;opacity:1;text-shadow:none!important}.rowLabel.dim{opacity:.23}
-html[data-theme="light"] .rowLabel,html[data-theme="paper"] .rowLabel{text-shadow:none!important}.tick span,#axisTitle span{font-family:"Inter","Noto Sans JP",sans-serif!important;letter-spacing:.02em;color:var(--muted)!important;background:var(--panel-soft)!important}
+html[data-theme="light"] .rowLabel{text-shadow:none!important}
+.tick span,#axisTitle span{font-family:"Inter","Noto Sans JP",sans-serif!important;letter-spacing:.02em;color:var(--muted)!important;background:var(--panel-soft)!important}
+html[data-theme="light"] #axis{background:rgba(255,255,255,.82)!important;border-top:1px solid rgba(25,35,48,.08)!important;border-bottom:1px solid rgba(25,35,48,.18)!important;box-shadow:0 6px 18px rgba(30,40,55,.08)!important;backdrop-filter:blur(10px)}
+html[data-theme="light"] .tick{background:rgba(45,55,68,.32)!important}html[data-theme="light"] .tick.major{background:rgba(35,45,58,.56)!important}
+html[data-theme="light"] .tick span,html[data-theme="light"] #axisTitle span{color:#2e3742!important;background:rgba(255,255,255,.84)!important;text-shadow:none!important}
+html[data-theme="light"] #axisTitle{background:rgba(45,55,68,.30)!important}
 #tooltip{font-family:"Inter","Noto Sans JP",sans-serif!important;background:var(--panel)!important;color:var(--text)!important;border-color:var(--border)!important;border-radius:10px!important;box-shadow:0 12px 32px rgba(0,0,0,.25)!important}
+#settingsPanel{position:fixed;top:calc(var(--axis-top,60px) + 50px);right:12px;bottom:12px;width:292px;max-width:calc(100vw - 24px);z-index:60;background:var(--panel);border:1px solid var(--border);border-radius:13px;padding:14px;box-sizing:border-box;box-shadow:0 16px 42px rgba(0,0,0,.24);backdrop-filter:blur(14px);overflow:auto;transform:translateX(calc(100% + 28px));opacity:0;pointer-events:none;transition:transform .2s ease,opacity .2s ease}
+#settingsPanel.open{transform:translateX(0);opacity:1;pointer-events:auto}
+#settingsPanelHeader{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}#settingsPanelHeader h3{margin:0;font-size:13px;font-weight:600;letter-spacing:.02em}
+#settingsCloseBtn{width:32px;height:32px;padding:0;border:1px solid var(--border);border-radius:8px;background:var(--control);color:var(--text);font-size:18px;cursor:pointer}
+.settingSection{padding:10px 0;border-top:1px solid var(--border)}.settingSection:first-of-type{border-top:0;padding-top:0}.settingTitle{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:.06em;margin-bottom:7px}
+.settingRow{display:flex;align-items:center;gap:7px;margin:7px 0;min-width:0}.settingRow>label:first-child{flex:1;font-size:11px;color:var(--text)}#settingsPanel select,#settingsPanel button,#settingsPanel label.check{font:500 11px/1.2 "Inter","Noto Sans JP",sans-serif;background:var(--control);color:var(--text);border:1px solid var(--border);border-radius:8px;min-height:32px;padding:6px 8px;box-sizing:border-box}#settingsPanel select{min-width:116px}#settingsPanel button{cursor:pointer}.settingRow .check{flex:1;display:flex;align-items:center;gap:6px}.settingRow.full>*{width:100%}
 #qrModal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;background:rgba(0,0,0,.68);backdrop-filter:blur(7px)}#qrModal.open{display:flex}
 #qrCard{position:relative;width:min(390px,calc(100vw - 32px));background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:22px;box-sizing:border-box;text-align:center;color:var(--text)}#qrCard h3{margin:0 34px 8px;font-size:15px;font-weight:600}#qrCard p{margin:0 0 14px;color:var(--muted);font-size:11px;line-height:1.55}
 #qrImage{width:min(300px,72vw);height:auto;background:#fff;border-radius:9px;padding:10px;box-sizing:border-box}#qrUrl{display:block;margin-top:12px;font-size:11px;overflow-wrap:anywhere;color:#8fcce8}#qrClose{position:absolute;top:9px;right:9px;width:32px;height:32px;padding:0;border:1px solid var(--border);border-radius:8px;background:var(--control);color:var(--text);font-size:18px}
 #copyright{position:fixed;right:12px;bottom:3px;z-index:45;pointer-events:none;font:400 9.5px/1.2 "Inter",sans-serif;letter-spacing:.025em;color:var(--muted);opacity:.52}
-@media(max-width:1180px){#titleSub{display:none}#search{width:180px!important}.toolbarDivider{display:none}#topbar{gap:5px!important}}@media(max-width:900px){#legend{width:210px!important}#help{display:none!important}#detail{max-width:44vw!important}.secondaryCtl{display:none!important}#search{width:150px!important;max-width:34vw!important}}
+@media(max-width:1180px){#titleSub{display:none}#search{width:180px!important}.toolbarDivider{display:none}#topbar{gap:5px!important}}@media(max-width:900px){#legend{width:210px!important}#help{display:none!important}#detail{max-width:44vw!important}#search{width:150px!important;max-width:34vw!important}#settingsPanel{width:270px}}
+
 
 </style>
 </head>
@@ -67,11 +76,31 @@ html[data-theme="light"] .rowLabel,html[data-theme="paper"] .rowLabel{text-shado
 <div id="app"></div>
 <div id="topbar">
   <div id="brand"><button id="qrBtn" type="button" title="このアプリのQRコード" aria-label="QRコードを表示"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 3h8v8H3V3Zm2 2v4h4V5H5Zm8-2h8v8h-8V3Zm2 2v4h4V5h-4ZM3 13h8v8H3v-8Zm2 2v4h4v-4H5Zm8-2h3v3h-3v-3Zm4 0h4v3h-2v2h-2v-5Zm-4 4h3v4h-3v-4Zm4 2h2v2h-2v-2Zm3-2h1v4h-1v-4Z"/></svg></button><div><div id="title">History Bank</div><div id="titleSub">国立銀行153行の変遷・統合・合併</div></div></div>
-  <div class="toolbarGroup"><button id="parallelBtn" class="active">平行年表</button><button id="treeBtn">3D俯瞰</button><button id="lineageBtn">フォーカス系譜</button></div><div class="toolbarDivider"></div>
+  <div class="toolbarGroup"><button id="parallelBtn" class="active">平行年表</button><button id="treeBtn">ツリー表示</button><button id="lineageBtn">フォーカス系譜</button></div><div class="toolbarDivider"></div>
   <input id="search" placeholder="銀行名・番号・現在名で検索" aria-label="銀行検索" /><button id="focusBtn">検索へ移動</button><div class="toolbarDivider"></div>
-  <div class="toolbarGroup secondaryCtl"><label class="check"><input id="toggleBranches" type="checkbox" checked> 支流</label><label class="check"><input id="toggleLabels" type="checkbox" checked> ラベル</label><select id="labelDensitySelect"><option value="sparse">文字 少</option><option value="standard" selected>文字 標準</option><option value="dense">文字 多</option></select><select id="fontSizeSelect"><option value="0.9">文字 小</option><option value="1" selected>文字 中</option><option value="1.15">文字 大</option></select></div>
-  <div class="toolbarGroup secondaryCtl"><select id="themeSelect"><option value="black" selected>背景 黒</option><option value="midnight">背景 紺</option><option value="light">背景 白</option><option value="paper">背景 紙</option></select><input id="bgColor" type="color" value="#050607" title="背景色を自由に変更" aria-label="背景色"></div>
-  <div class="toolbarGroup secondaryCtl"><button id="barsBtn">3D棒</button><select id="metricSelect" title="3D棒グラフの指標"><option value="lineage">国立銀行系譜数</option><option value="assets">総資産</option><option value="deposits">預金量</option><option value="employees">社員数</option></select><input id="metricCsv" type="file" accept=".csv,text/csv" style="display:none" /><button id="metricCsvBtn">CSV</button><button id="rotateBtn">自由回転</button><button id="resetBtn">全体表示</button><button id="detailToggleBtn">詳細</button></div>
+  <button id="settingsToggleBtn" type="button" aria-expanded="false" aria-controls="settingsPanel">設定</button>
+  <button id="detailToggleBtn" type="button">詳細</button>
+</div>
+<div id="settingsPanel" aria-hidden="true">
+  <div id="settingsPanelHeader"><h3>設定</h3><button id="settingsCloseBtn" type="button" aria-label="設定を閉じる">×</button></div>
+  <div class="settingSection">
+    <div class="settingTitle">表示</div>
+    <div class="settingRow"><label class="check"><input id="toggleBranches" type="checkbox" checked> 支流を表示</label></div>
+    <div class="settingRow"><label class="check"><input id="toggleLabels" type="checkbox" checked> ラベルを表示</label></div>
+    <div class="settingRow"><label for="labelDensitySelect">文字密度</label><select id="labelDensitySelect"><option value="sparse">少ない</option><option value="standard" selected>標準</option><option value="dense">多い</option></select></div>
+    <div class="settingRow"><label for="fontSizeSelect">文字サイズ</label><select id="fontSizeSelect"><option value="0.9">小</option><option value="1" selected>中</option><option value="1.15">大</option></select></div>
+  </div>
+  <div class="settingSection">
+    <div class="settingTitle">背景</div>
+    <div class="settingRow"><label for="themeSelect">背景色</label><select id="themeSelect"><option value="black" selected>黒</option><option value="light">白</option></select></div>
+  </div>
+  <div class="settingSection">
+    <div class="settingTitle">規模指標</div>
+    <div class="settingRow full"><button id="barsBtn" type="button">3D棒グラフ</button></div>
+    <div class="settingRow"><label for="metricSelect">指標</label><select id="metricSelect" title="3D棒グラフの指標"><option value="lineage">国立銀行系譜数</option><option value="assets">総資産</option><option value="deposits">預金量</option><option value="employees">社員数</option></select></div>
+    <input id="metricCsv" type="file" accept=".csv,text/csv" style="display:none" />
+    <div class="settingRow full"><button id="metricCsvBtn" type="button">指標CSV取込</button></div>
+  </div>
 </div>
 <div id="axis"></div><div id="rowLabels"></div><div id="stats"></div>
 <div id="legend"><h3>凡例</h3>
@@ -83,7 +112,7 @@ html[data-theme="light"] .rowLabel,html[data-theme="paper"] .rowLabel{text-shado
   <div class="legendItem"><span class="sw" style="background:#7d8798"></span> 開始年・直前名未精査</div>
   <div class="legendItem"><span class="sw" style="background:#f3f7ff; border-radius:2px"></span> 3D棒＝選択中の規模指標</div>
 </div>
-<div id="help"><b>平行年表</b>＝153行を共通時間軸で比較　<b>3D俯瞰</b>＝系譜全体を斜め視点で探索　<b>フォーカス系譜</b>＝クリック／検索した銀行の祖先〜後継を強調。ドラッグで移動、ホイールで拡大縮小。3DではShift+ドラッグまたは「自由回転」で視点回転。文字はズーム量・重要度・重なりに応じて自動調整します。</div>
+<div id="help"><b>平行年表</b>＝153行を共通時間軸で比較　<b>ツリー表示</b>＝同名銀行を統合した系譜を表示　<b>フォーカス系譜</b>＝クリック／検索した銀行の祖先〜後継を強調。ドラッグで移動、ホイールで拡大縮小。文字はズーム量・重要度・重なりに応じて自動調整します。</div>
 <div id="detail"><h3>ノード情報</h3><div class="meta">ノードをクリックしてください。</div><div class="memo">平行年表では153行の並びを維持し、支流は奥行き方向に表示します。ツリー表示では左端の153個の国立銀行ノードは保持し、それ以降の同名銀行ノードを統合します。</div></div>
 <div id="tooltip"></div><div id="qrModal" role="dialog" aria-modal="true" aria-labelledby="qrTitle" aria-hidden="true"><div id="qrCard"><button id="qrClose" type="button" aria-label="閉じる">×</button><h3 id="qrTitle">History Bank</h3><p>スマートフォンやタブレットで読み取ってアクセスできます。</p><img id="qrImage" src="https://api.qrserver.com/v1/create-qr-code/?size=320x320&amp;data=https%3A%2F%2Fscd-ku.github.io%2Fhistorybank%2F" alt="QRコード"><a id="qrUrl" href="https://scd-ku.github.io/historybank/" target="_blank" rel="noopener">https://scd-ku.github.io/historybank/</a></div></div><div id="copyright">Science Comunication Design Laboratory, Kagawa University</div>
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
