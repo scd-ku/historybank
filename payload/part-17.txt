@@ -237,6 +237,8 @@ function parallelRowY(no){
   const y=noToY(no);
   return parallelBranchExpansion && Number(no)>parallelBranchExpansion.hostNo ? y-parallelBranchExpansion.extraHeight : y;
 }
+function isExpandedParallelBranch(id){return !!(activeLayout==='parallel'&&parallelBranchExpansion&&parallelBranchExpansion.revealedIds&&parallelBranchExpansion.revealedIds.has(id));}
+function isExpandedParallelEdge(e){return !!(activeLayout==='parallel'&&parallelBranchExpansion&&e&&(isExpandedParallelBranch(e.source)||isExpandedParallelBranch(e.target)));}
 function syncParallelNodePosition(n){
   const set=groups.parallel;if(!set||!n)return;
   const mesh=set.nodeMeshMap.get(n.id),bar=set.barMap.get(n.id),spr=set.labelMap.get(n.id);
@@ -340,6 +342,8 @@ function setParallelBranchExpansion(startId){
   for(const n of set.map.values())syncParallelNodePosition(n);
   refreshParallelEdgeGeometry();
   refreshParallelGridGeometry();
+  updateLabelVisibility();
+  updateRowLabels();
 }
 function setDockOpen(dockId,tabId,open){const dock=document.getElementById(dockId),tab=document.getElementById(tabId);if(!dock||!tab)return;dock.classList.toggle('closed',!open);tab.setAttribute('aria-expanded',open?'true':'false');}
 function toggleDock(dockId,tabId){const dock=document.getElementById(dockId);if(!dock)return;setDockOpen(dockId,tabId,dock.classList.contains('closed'));}
@@ -437,13 +441,13 @@ function setPathHighlight(startId,pinned=false){
   for(const spr of set.labelObjs){
     const n=spr.userData.node;
     if(showBranches||!spr.userData.branch){
-      const inPath=hoverPathIds.has(n.id);
-      spr.visible = inPath ? true : (focusLineage ? false : (labelOn && spr.visible));
-      spr.material.opacity = inPath ? 1 : Math.min(spr.material.opacity||1,focusLineage ? .035 : .16);
-      spr.material.color.setHex(inPath?0xffffff:0x9aa7bb);
+      const inPath=hoverPathIds.has(n.id),expanded=isExpandedParallelBranch(n.id);
+      spr.visible = (inPath||expanded) ? true : (focusLineage ? false : (labelOn && spr.visible));
+      spr.material.opacity = inPath ? 1 : (expanded?.94:Math.min(spr.material.opacity||1,focusLineage ? .035 : .16));
+      spr.material.color.setHex(inPath?0xffffff:(expanded?0xa9dcff:0x9aa7bb));
       const bx=spr.userData.baseScaleX||spr.scale.x, by=spr.userData.baseScaleY||spr.scale.y;
       const isStart=n.id===startId;
-      spr.scale.set(inPath?bx*(isStart?2.25:1.72):bx, inPath?by*(isStart?2.25:1.72):by, 1);
+      spr.scale.set(inPath?bx*(isStart?2.25:1.72):(expanded?bx*1.12:bx), inPath?by*(isStart?2.25:1.72):(expanded?by*1.12:by), 1);
       spr.renderOrder=inPath?30:0;
     }
   }
@@ -469,7 +473,8 @@ function setPathHighlight(startId,pinned=false){
       obj.material.opacity=1;
       if(obj.type==='Line') obj.renderOrder=18; else obj.scale.setScalar(2.8);
     } else if(obj.material && obj.userData && obj.userData.edgeKey){
-      obj.material.opacity=Math.min(obj.material.opacity||1,focusLineage ? .04 : .16);
+      const expanded=isExpandedParallelEdge(obj.userData.edge);
+      obj.material.opacity=expanded?Math.max(obj.userData.baseOpacity||.58,.72):Math.min(obj.material.opacity||1,focusLineage ? .04 : .16);
     }
   }
   // 太いチューブ状のハイライト線を重ね、ブラウザ差で lineWidth が無効でも強調が見えるようにする。
