@@ -16,7 +16,7 @@ html,body{margin:0;height:100%;background:#050607;color:#f2f3f5;font-family:-app
 <script>
 (async()=>{
   try{
-    const files=["payload/part-01.txt","payload/part-02.txt","payload/part-03.txt","payload/part-04.txt","payload/part-05.txt","payload/part-06.txt","payload/part-07.txt","payload/part-08.txt","payload/part-09.txt","payload/part-10.txt","payload/part-11.txt","payload/part-12.txt","payload/part-13.txt","payload/part-14.txt","payload/part-15.txt","payload/part-16.txt","payload/part-17.txt"],v='20260930-merger-reasons';
+    const files=["payload/part-01.txt","payload/part-02.txt","payload/part-03.txt","payload/part-04.txt","payload/part-05.txt","payload/part-06.txt","payload/part-07.txt","payload/part-08.txt","payload/part-09.txt","payload/part-10.txt","payload/part-11.txt","payload/part-12.txt","payload/part-13.txt","payload/part-14.txt","payload/part-15.txt","payload/part-16.txt","payload/part-17.txt"],v='20260930-tree-labels-branch-lanes';
     const responses=await Promise.all(files.map(f=>fetch(f+'?v='+v,{cache:'no-cache'})));
     const bad=responses.find(r=>!r.ok);
     if(bad)throw new Error('データを読み込めませんでした ('+bad.status+')');
