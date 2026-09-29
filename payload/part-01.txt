@@ -22,6 +22,8 @@ button:hover,label.check:hover { background:rgba(255,255,255,.14); } label.check
 #rowLabels { position:fixed; top:var(--rows-top, 102px); left:0; bottom:0; width:220px; z-index:12; pointer-events:none; overflow:hidden; } .rowLabel { position:absolute; left:8px; font-size:11px; color:rgba(238,243,255,.78); text-shadow:0 1px 2px #000; white-space:nowrap; padding:1px 5px; border-radius:6px; max-width:210px; overflow:hidden; text-overflow:ellipsis; }
 .rowLabel.active { color:#fff; font-size:13px; font-weight:850; background:rgba(255,240,106,.18); text-shadow:0 0 8px rgba(255,240,106,.85),0 1px 2px #000; }
 .rowLabel.dim { color:rgba(238,243,255,.23); }
+.rowLabel.branchLane { left:24px; max-width:190px; font-size:10px; font-weight:650; color:#9bddff; background:rgba(80,150,190,.12); border-left:2px solid rgba(155,221,255,.55); }
+html[data-theme="light"] .rowLabel.branchLane { color:#426f84; background:rgba(70,120,145,.08); border-left-color:rgba(66,111,132,.38); }
 #legend { position:fixed; left:12px; bottom:12px; z-index:20; background:var(--panel); border:1px solid rgba(255,255,255,.12); border-radius:14px; padding:10px 12px; width:280px; box-shadow:0 12px 30px rgba(0,0,0,.24); }
 #legend h3,#detail h3 { margin:0 0 8px 0; font-size:13px; } .legendItem { display:flex; align-items:center; gap:8px; margin:5px 0; font-size:12px; color:var(--muted); } .sw { width:11px; height:11px; border-radius:99px; display:inline-block; }
 #detail { position:fixed; top:106px; right:12px; bottom:12px; width:390px; max-width:34vw; overflow:auto; z-index:20; background:var(--panel); border:1px solid rgba(255,255,255,.12); border-radius:16px; padding:14px; box-sizing:border-box; box-shadow:0 12px 30px rgba(0,0,0,.26); transition:transform .18s ease, opacity .18s ease; }
@@ -169,7 +171,7 @@ html[data-theme="light"] .sw-national{background:#5f8492!important}html[data-the
   <p class="helpLead">153の国立銀行を起点に、銀行の名称変更・合併・買収・現在の後身までを共通時間軸とツリーでたどるためのインタラクティブな系譜ビューアです。</p>
   <div class="helpGrid">
     <div class="helpSection"><h4>表示モード</h4><p><b>平行年表</b>は153行を同じ時間軸で比較します。<b>ツリー表示</b>は同名銀行を統合して系譜構造を見やすくします。<b>フォーカス系譜</b>は選んだ銀行の祖先から後継までを強調します。</p></div>
-    <div class="helpSection"><h4>基本操作</h4><ul><li>ドラッグ：表示範囲を移動</li><li>ホイール：拡大・縮小</li><li>ノードをクリック：右の情報パネルに固定表示</li><li>ノードへカーソル：ノードや系譜を一時強調</li></ul></div>
+    <div class="helpSection"><h4>基本操作</h4><ul><li>ドラッグ：表示範囲を移動</li><li>ホイール：拡大・縮小</li><li>ノードをクリック：右の情報パネルに固定表示</li><li>平行年表で合併・統合に支流があるノードをクリック：その行を一時的に広げ、奥側に重なっていた支流を直下の平行レーンに展開</li><li>別のノードをクリック：支流レーンを元の配置に戻し、必要な場合は新しい支流を展開</li><li>ノードへカーソル：ノードや系譜を一時強調</li></ul></div>
     <div class="helpSection"><h4>情報と出典</h4><p>右パネルでは年代、変遷内容、現在・後身、選択中の規模指標に加えて、統合・合併等の「背景・理由」と、その確認に使った研究論文・公的資料・報道・プレスリリース等の出典・原典リンクを表示します。個別の直接理由を確認できない場合は「時代背景」として区別し、原因を断定しません。別ノードをクリックするまで内容は保持されます。</p></div>
     <div class="helpSection"><h4>表示の調整</h4><p>タイトル右の設定アイコンから、支流・ラベル、文字密度・サイズ、背景色、3D棒グラフと指標を変更できます。左の「凡例」と右の「情報」タブで各パネルを出し入れできます。</p></div>
   </div>
