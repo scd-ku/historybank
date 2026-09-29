@@ -369,9 +369,16 @@ function setPathHighlight(startId,pinned=false){
 }
 function clearPathHighlight(keepLock=false){clearHighlightOverlays();if(!keepLock)lockedNodeId=null;const set=activeSet();if(set){for(const mesh of set.nodeObjs){const c=mesh.userData.baseColor;mesh.material.color.setHex(c);mesh.material.emissive.setHex(c);mesh.material.emissiveIntensity=mesh.userData.baseEmissiveIntensity||.07;mesh.scale.setScalar(searchTerm&&qMatchesNode(mesh.userData.node)?1.8:1);mesh.material.opacity=searchTerm&&qMatchesNode(mesh.userData.node)?1:mesh.userData.baseOpacity;mesh.renderOrder=0;}for(const bar of set.barObjs){const c=bar.userData.baseColor;bar.material.color.setHex(c);bar.material.emissive.setHex(c);bar.material.emissiveIntensity=.04;bar.material.opacity=bar.userData.baseOpacity;bar.renderOrder=0;}for(const spr of set.labelObjs){spr.material.opacity=spr.userData.baseOpacity;spr.material.color.setHex(0xffffff);const bx=spr.userData.baseScaleX||spr.scale.x,by=spr.userData.baseScaleY||spr.scale.y;spr.scale.set(bx,by,1);spr.renderOrder=0;}for(const obj of set.edgeObjs){obj.material.color.setHex(obj.userData.baseColor||0x536a91);obj.material.opacity=obj.userData.baseOpacity??.58;if(obj.type==='Line')obj.renderOrder=0;else obj.scale.setScalar(1);}}hoverNodeId=null;hoverPathIds=new Set();hoverPathEdgeKeys=new Set();hoverLatestYear=null;hoverAccentId=null;applyFilters();updateRowLabels();}
 function safeSourceUrl(url){
+  const raw=String(url??'').trim();
+  if(!raw) return '';
   try{
-    const u=new URL(String(url||''),location.href);
-    return (u.protocol==='https:'||u.protocol==='http:')?u.href:'';
+    const u=new URL(raw,location.href);
+    if(u.protocol!=='https:'&&u.protocol!=='http:') return '';
+    // 空URLや誤ってアプリ自身を指すURLは「出典」として表示しない。
+    const here=new URL(location.href);
+    const norm=p=>p.replace(/\/+$/,'/')||'/';
+    if(u.origin===here.origin && norm(u.pathname)===norm(here.pathname)) return '';
+    return u.href;
   }catch(_){ return ''; }
 }
 function linkHtml(url,label='開く'){
@@ -379,9 +386,101 @@ function linkHtml(url,label='開く'){
   return u?`<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(label)}</a>`:'';
 }
 const CORE_SOURCE_LINKS=[
-  {label:'全国銀行協会「銀行変遷史データベース」',url:'https://www.zenginkyo.or.jp/library/hensen/',note:'設立・合併・営業譲渡・解散・商号変更などの銀行沿革'},
-  {label:'日本銀行「第一銀行、七十七銀行など、数字の付いた銀行名の由来は何ですか？」',url:'https://www.boj.or.jp/about/education/oshiete/history/j11.htm',note:'国立銀行制度、番号、153行に関する基礎資料'}
+  {label:'全国銀行協会「銀行変遷史データベース」',url:'https://www.zenginkyo.or.jp/library/hensen/',note:'設立・合併・営業譲渡・解散・商号変更などを確認できる銀行沿革データベース'},
+  {label:'日本銀行「教えて！にちぎん：第一銀行、七十七銀行など、数字の付いた銀行名の由来は何ですか？」',url:'https://www.boj.or.jp/about/education/oshiete/history/j11.htm',note:'国立銀行制度・番号・153行の設立に関する背景資料'}
 ];
+
+// ノードの出来事を直接裏付ける一次資料・公式沿革・報道。
+// 記事本文や図版は転載せず、資料名と外部リンクだけを提示する。
+const EVENT_SOURCE_LINKS={
+  '平和相互銀行を合併':[
+    {label:'三井住友銀行「沿革」',url:'https://www.smbc.co.jp/aboutus/profile/history.html',note:'1986年の住友銀行による平和相互銀行合併を記載'}
+  ],
+  '太陽神戸三井銀行':[
+    {label:'三井住友銀行「沿革」',url:'https://www.smbc.co.jp/aboutus/profile/history.html',note:'1990年の三井銀行・太陽神戸銀行合併を記載'}
+  ],
+  '三井住友銀行':[
+    {label:'三井住友銀行「沿革」',url:'https://www.smbc.co.jp/aboutus/profile/history.html',note:'2001年のさくら銀行・住友銀行合併を記載'},
+    {label:'SMBCグループ二十年史「年表」',url:'https://www.smfg.co.jp/chronicle20/appendix/chronology.html',note:'2001年4月1日の三井住友銀行発足を記載'}
+  ],
+  '協和埼玉銀行':[
+    {label:'りそなホールディングス「りそなグループのあゆみ」',url:'https://www.resona-gr.co.jp/holdings/about/outline/history/index.html',note:'1991年の協和銀行・埼玉銀行の対等合併を記載'}
+  ],
+  'あさひ銀行':[
+    {label:'りそなホールディングス「りそなグループのあゆみ」',url:'https://www.resona-gr.co.jp/holdings/about/outline/history/index.html',note:'1992年の協和埼玉銀行からあさひ銀行への商号変更を記載'}
+  ],
+  '埼玉りそな銀行設立':[
+    {label:'りそなホールディングス「りそなグループについて・よくあるご質問」',url:'https://www.resona-gr.co.jp/holdings/investors/faq/hd.html',note:'2003年の埼玉県内営業承継と埼玉りそな銀行設置を説明'},
+    {label:'埼玉りそな銀行「会社概要」',url:'https://www.saitamaresona.co.jp/about/gaiyo/index.html',note:'設立日と営業開始日を掲載'}
+  ],
+  '東京三菱銀行':[
+    {label:'三菱UFJ銀行「過去と未来」',url:'https://www.saiyo.bk.mufg.jp/pastandfuture/',note:'三菱銀行・東京銀行を源流とする1996年の東京三菱銀行設立を記載'}
+  ],
+  '三菱東京UFJ銀行':[
+    {label:'三菱UFJ銀行「過去と未来」',url:'https://www.saiyo.bk.mufg.jp/pastandfuture/',note:'2006年の三菱東京UFJ銀行設立を記載'},
+    {label:'三菱UFJ銀行「店名変更のお知らせ」',url:'https://www.bk.mufg.jp/tsukau/tenpo/tenmei/btm_ufj.html',note:'2006年1月1日の合併に伴う変更を掲載'}
+  ],
+  '三菱UFJ銀行':[
+    {label:'三菱UFJ銀行「銀行名変更にともなうお知らせ」',url:'https://bizstation.bk.mufg.jp/info/bizkoumei.html',note:'2018年4月1日の三菱UFJ銀行への銀行名変更を記載'},
+    {label:'MUFG「2018年3月期 有価証券報告書」',url:'https://www.mufg.jp/ir/report/security_report/2018/index.html',note:'2018年4月1日付の商号変更を注記'}
+  ],
+  'みずほFG発足':[
+    {label:'みずほフィナンシャルグループ「沿革」',url:'https://www.mizuho-fg.co.jp/company/info/profile.html',note:'3行統合契約と2000年のみずほホールディングス設立を記載'},
+    {label:'みずほフィナンシャルグループ「1999年～ 金融再編～〈みずほ〉の誕生～」',url:'https://www.mizuho-fg.co.jp/company/info/history/trend/period_06.html',note:'第一勧業・富士・日本興業の統合発表と〈みずほ〉発足経緯を掲載'}
+  ],
+  'みずほ銀行発足':[
+    {label:'みずほフィナンシャルグループ「沿革」',url:'https://www.mizuho-fg.co.jp/company/info/profile.html',note:'2002年4月の会社分割・合併による再編を記載'}
+  ],
+  'みずほ銀行へ統合':[
+    {label:'みずほ銀行「旧みずほ銀行と旧みずほコーポレート銀行の合併に関するお知らせ」',url:'https://www.mizuhobank.co.jp/release/bk_cb_tougou/index.html',note:'2013年7月1日の合併と関連ニュースリリースを掲載'},
+    {label:'みずほ銀行「銀行名・銀行コード・店名変更のお知らせ」',url:'https://www.mizuhobank.co.jp/tenpoinfo/tougou/cb2013/index.html',note:'2013年7月1日の合併を明記'}
+  ],
+  '十八親和銀行':[
+    {label:'十八親和銀行「合併・システム統合に伴う重要なお知らせ」',url:'https://www.18shinwabank.co.jp/faq/tougou/announcement/',note:'2020年10月1日の十八銀行・親和銀行合併を記載'}
+  ],
+  '親和銀行':[
+    {label:'十八親和銀行「合併・システム統合に伴う重要なお知らせ」',url:'https://www.18shinwabank.co.jp/faq/tougou/announcement/',note:'2020年10月1日の十八銀行・親和銀行合併を記載'}
+  ],
+  '第四北越銀行':[
+    {label:'第四北越銀行「合併にともなう各種お取り扱いについて」',url:'https://www.dhbk.co.jp/gappei/',note:'2021年1月の第四銀行・北越銀行合併を記載'}
+  ],
+  '北越銀行':[
+    {label:'第四北越銀行「合併にともなうお手続きなどの重要なお知らせ」',url:'https://www.dhbk.co.jp/gappei/ds/notice4.html',note:'2021年1月1日の第四銀行・北越銀行合併を記載'}
+  ],
+  '青森みちのく銀行':[
+    {label:'青森みちのく銀行「合併にともなう重要なお知らせ」',url:'https://www.am-bk.co.jp/merger/',note:'2025年1月1日の青森銀行・みちのく銀行合併を記載'},
+    {label:'東奥日報「『青森みちのく銀行』誕生へ合併契約」',url:'https://www.toonippo.co.jp/articles/-/1868272',note:'2024年9月27日の合併契約を報じた地方紙記事'}
+  ],
+  '長野銀行':[
+    {label:'八十二長野銀行「沿革」',url:'https://bank.82group.jp/about/company/enkaku.html',note:'1989年の普通銀行転換・長野銀行発足を記載'}
+  ],
+  '八十二長野銀行':[
+    {label:'八十二長野銀行「沿革」',url:'https://bank.82group.jp/about/company/enkaku.html',note:'2026年1月の八十二銀行・長野銀行合併を記載'},
+    {label:'八十二長野銀行「合併に伴うお取扱いについて」',url:'https://bank.82group.jp/gappei/82bank/step01.html',note:'2026年1月1日の新銀行名と合併予定を公式案内'}
+  ]
+};
+const SUCCESSOR_HISTORY_LINKS={
+  'みずほ銀行':{label:'みずほフィナンシャルグループ「沿革」',url:'https://www.mizuho-fg.co.jp/company/info/profile.html',note:'みずほ系譜の公式沿革'},
+  '三井住友銀行':{label:'三井住友銀行「沿革」',url:'https://www.smbc.co.jp/aboutus/profile/history.html',note:'三井・住友・神戸・太陽などの系譜を含む公式沿革'},
+  '三菱UFJ銀行':{label:'三菱UFJ銀行「過去と未来」',url:'https://www.saiyo.bk.mufg.jp/pastandfuture/',note:'三菱・東京・三和・東海から現在までの公式系譜'},
+  '埼玉りそな銀行':{label:'りそなホールディングス「りそなグループのあゆみ」',url:'https://www.resona-gr.co.jp/holdings/about/outline/history/index.html',note:'協和・埼玉・あさひ銀行からの公式沿革'},
+  '十八親和銀行':{label:'十八親和銀行「合併・システム統合に伴う重要なお知らせ」',url:'https://www.18shinwabank.co.jp/faq/tougou/announcement/',note:'十八銀行・親和銀行の合併資料'},
+  '第四北越銀行':{label:'第四北越銀行「合併にともなう各種お取り扱いについて」',url:'https://www.dhbk.co.jp/gappei/',note:'第四銀行・北越銀行の合併資料'},
+  '青森みちのく銀行':{label:'青森みちのく銀行「合併にともなう重要なお知らせ」',url:'https://www.am-bk.co.jp/merger/',note:'青森銀行・みちのく銀行の合併資料'},
+  '八十二長野銀行':{label:'八十二長野銀行「沿革」',url:'https://bank.82group.jp/about/company/enkaku.html',note:'八十二銀行・長野銀行の公式沿革'}
+};
+function appendContextualSourceLinks(n,push){
+  const labels=[String(n.label||''),String(n.memo||'')];
+  for(const [key,links] of Object.entries(EVENT_SOURCE_LINKS)){
+    if(labels.some(v=>v.includes(key))) for(const s of links) push(s.label,s.url,s.note);
+  }
+  const raw=String(n.current||'').trim();
+  const names=[raw,...raw.split(/[／/]/)].map(v=>v.replace(/等$/,'').trim()).filter(Boolean);
+  for(const name of [...new Set(names)]){
+    const s=SUCCESSOR_HISTORY_LINKS[name];
+    if(s) push(s.label,s.url,s.note);
+  }
+}
 function collectNodeSourceLinks(n,mo){
   const out=[],seen=new Set();
   const push=(label,url,note='')=>{
@@ -401,6 +500,8 @@ function collectNodeSourceLinks(n,mo){
     const s=finance[name];
     if(s&&s.url) push(s.source||name,s.url,'現在/後身銀行の会社概要・指標参照元');
   }
+  // 出来事を直接裏付ける一次資料・公式沿革・報道を優先して追加。
+  appendContextualSourceLinks(n,push);
   // 歴史変遷の共通原典。
   for(const s of CORE_SOURCE_LINKS) push(s.label,s.url,s.note);
   if(n.no===1 || n.no_min===1 || /第一国立銀行/.test(String(n.label||''))){
@@ -412,7 +513,7 @@ function sourceLinksHtml(n,mo){
   const links=collectNodeSourceLinks(n,mo);
   if(!links.length) return '';
   const items=links.map(s=>`<li style="margin:0 0 9px 0;"><a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.label)}</a>${s.note?`<div style="margin-top:2px;color:var(--muted);font-size:10.5px;line-height:1.45;">${esc(s.note)}</div>`:''}<div style="margin-top:2px;color:var(--muted);font-size:9.5px;line-height:1.35;word-break:break-all;">${esc(s.url)}</div></li>`).join('');
-  return `<div class="meta" style="margin-top:13px;padding-top:11px;border-top:1px solid var(--border);"><b style="color:var(--text);">出典・原典リンク</b><ol style="margin:8px 0 0 18px;padding:0;">${items}</ol></div>`;
+  return `<div class="meta" style="margin-top:13px;padding-top:11px;border-top:1px solid var(--border);"><b style="color:var(--text);">出典・原典リンク</b><ol style="margin:8px 0 0 18px;padding:0;">${items}</ol><div style="margin-top:7px;color:var(--muted);font-size:9.5px;line-height:1.45;">外部資料は著作権に配慮し、本文・図版を転載せず、資料名・発行主体と原典へのリンクのみを表示しています。</div></div>`;
 }
 function selectNode(n){
   const warn=((n.accuracy||'').includes('unknown')||(n.accuracy||'').includes('unverified'))?'<div class="warn">※開始年または直前名が未精査です。表示位置・支流名は暫定です。</div>':'';
