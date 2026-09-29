@@ -321,7 +321,7 @@ function findParallelBranchLanes(startId){
 function setParallelBranchExpansion(startId){
   resetParallelBranchExpansion();
   const spec=findParallelBranchLanes(startId);if(!spec)return;
-  const set=groups.parallel,laneGap=Math.max(7.6,Y_GAP*.82),extraHeight=laneGap*spec.lanes.length+Math.max(1.8,Y_GAP*.18);
+  const set=groups.parallel,sw=screenWorldSize(),screenGap=16*sw.h/Math.max(480,window.innerHeight),laneGap=Math.max(Y_GAP*1.35,Math.min(Y_GAP*2.3,screenGap)),extraHeight=laneGap*spec.lanes.length+Y_GAP*.35;
   const revealedIds=new Set();
   parallelBranchExpansion={selectedId:startId,hostNo:spec.hostNo,laneGap,extraHeight,lanes:[],revealedIds};
   for(const n of set.map.values()){
