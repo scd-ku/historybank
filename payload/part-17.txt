@@ -443,7 +443,7 @@ function setPathHighlight(startId,pinned=false){
     if(showBranches||!spr.userData.branch){
       const inPath=hoverPathIds.has(n.id),expanded=isExpandedParallelBranch(n.id);
       spr.visible = (inPath||expanded) ? true : (focusLineage ? false : (labelOn && spr.visible));
-      spr.material.opacity = inPath ? 1 : (expanded?.94:Math.min(spr.material.opacity||1,focusLineage ? .035 : .16));
+      spr.material.opacity = inPath ? 1 : (expanded ? .94 :Math.min(spr.material.opacity||1,focusLineage ? .035 : .16));
       spr.material.color.setHex(inPath?0xffffff:(expanded?0xa9dcff:0x9aa7bb));
       const bx=spr.userData.baseScaleX||spr.scale.x, by=spr.userData.baseScaleY||spr.scale.y;
       const isStart=n.id===startId;
