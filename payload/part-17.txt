@@ -469,6 +469,94 @@ const SUCCESSOR_HISTORY_LINKS={
   '青森みちのく銀行':{label:'青森みちのく銀行「合併にともなう重要なお知らせ」',url:'https://www.am-bk.co.jp/merger/',note:'青森銀行・みちのく銀行の合併資料'},
   '八十二長野銀行':{label:'八十二長野銀行「沿革」',url:'https://bank.82group.jp/about/company/enkaku.html',note:'八十二銀行・長野銀行の公式沿革'}
 };
+// 「背景・理由」欄で参照する研究論文・公的資料・公式発表。
+// 個別資料が確認できないノードでは、当該時期の一般的背景と明示して利用し、
+// 個別の合併原因であるかのような断定はしない。
+const REASON_SOURCES={
+  nationalConversion:{label:'日本銀行『日本銀行百年史』第2巻「国立銀行の普通銀行転換」',url:'https://www.boj.or.jp/about/outline/history/hyakunen/data/hyaku2_3_1_1.pdf',note:'国立銀行の20年営業期限と普通銀行への転換制度を説明'},
+  earlyPolicy:{label:'日本銀行金融研究所「戦前日本における『最後の貸し手』機能と銀行経営・銀行淘汰」',url:'https://www.imes.boj.or.jp/research/papers/japanese/kk26-1-2.pdf',note:'1890年代以降の銀行合同促進、1920年・1923年の制度変更、1927年銀行法を分析'},
+  interwarCrisis:{label:'日本銀行金融研究所「両大戦間期の日本における恐慌と政策対応」',url:'https://www.boj.or.jp/research/wps_rev/rev_2009/rev09j01.htm',note:'1920年代の不良債権、1927年金融恐慌と銀行合同を含む構造改革の背景'},
+  bankAct1927:{label:'RIETI「銀行統合促進政策の効果：1927年銀行法の評価」',url:'https://www.rieti.go.jp/jp/publications/summary/04010004.html',note:'最低資本金規制と政策的な銀行統合の関係を定量分析'},
+  wartimeOnePref:{label:'進藤寛「戦時下における地方銀行の合同―『一県一行主義』の完成」',url:'https://ndlsearch.ndl.go.jp/books/R000000004-I655665',note:'戦時期の地方銀行合同と一県一行主義を扱う研究（国立国会図書館書誌）'},
+  prewarMergerStability:{label:'RIETI「銀行統合と金融システムの安定性：歴史的パースペクティブ」',url:'https://www.rieti.go.jp/jp/publications/summary/02120001.html',note:'戦前の銀行統合と預金吸収力・金融システム安定性を分析'},
+  postwarSplit:{label:'SMBCグループ二十年史「三井住友銀行」',url:'https://www.smfg.co.jp/chronicle20/company/smbc.html',note:'帝国銀行の戦後分離、神戸・太陽、三井・太陽神戸などの再編背景を説明'},
+  postwarScale:{label:'SMBCグループ二十年史「バブル崩壊と金融不安の台頭」',url:'https://www.smfg.co.jp/chronicle20/history10/00_ikatsu.pdf',note:'1970年代以降の都市銀行の規模拡大、金融環境変化、再編を整理'},
+  modernResearch:{label:'RIETI「Consolidation of Banks in Japan: Causes and Consequences」',url:'https://www.rieti.go.jp/jp/publications/summary/07100005.html',note:'1990～2004年度の銀行M&Aについて、金融危機対応・効率改善等の動機を分析'},
+  regionalFsa:{label:'金融庁「地域金融の課題と競争のあり方」',url:'https://www.fsa.go.jp/singi/kinyuchukai/kyousou/20180411/01.pdf',note:'人口減少、収益環境、固定費・規模の経済と地域銀行の経営統合を整理'},
+  regionalSupport:{label:'金融庁「アクセスFSA 第217号」',url:'https://www.fsa.go.jp/access/r3/217.html',note:'人口減少・低金利下で地域金融機能を維持するための経営基盤強化と再編支援の背景'},
+  daiichiSplitStudy:{label:'堀峰生「昭和戦時下の大銀行合同政策にかかわった銀行家」',url:'https://riim.ws.hosei.ac.jp/wp-content/uploads/2014/10/WPNo.133_Hori.pdf',note:'帝国銀行の戦後分離について、組織融和・人事等の要因を検討'},
+  dkbMizuho:{label:'みずほFG「〈みずほ〉の成り立ちと変革への取り組み」',url:'https://www.mizuho-fg.co.jp/company/info/history/founding/index.html',note:'第一銀行・日本勧業銀行の対等合併と第一勧業銀行発足を公式沿革で説明'},
+  taiyoKobe:{label:'SMBCグループ二十年史「三井住友銀行」',url:'https://www.smfg.co.jp/chronicle20/company/smbc.html',note:'神戸銀行と太陽銀行の地理的補完関係、太陽神戸銀行の課題を説明'},
+  heiwaCao:{label:'内閣府『バブル／デフレ期の日本経済と経済政策』第2部第5章',url:'https://www.esri.cao.go.jp/jp/esri/prj/sbubble/history/history_01/analysis_01_02_05.pdf',note:'平和相互銀行の経営悪化と住友銀行による合併の経緯を記述'},
+  sakuraHistory:{label:'SMBCグループ二十年史「太陽神戸三井銀行の発足」',url:'https://www.smfg.co.jp/chronicle20/history10/05_01-01.pdf',note:'BIS規制・金融自由化、両行の補完関係など1990年合併の時代背景を説明'},
+  kyowaSaitama:{label:'公正取引委員会「平成2年度における主要な企業結合事例」',url:'https://www.jftc.go.jp/info/nenpou/h02/02070000.html',note:'協和銀行・埼玉銀行合併の目的を、経営基盤強化・サービス向上・リテール強化と記載'},
+  tokyoMitsubishi:{label:'公正取引委員会「平成7年度における主要な企業結合事例」',url:'https://www.jftc.go.jp/dk/kiketsu/jirei/7nendo_files/7nendo.pdf',note:'三菱銀行・東京銀行合併の目的を国内外拠点網充実と国際競争力強化と記載'},
+  mizuho2000:{label:'公正取引委員会「第一勧業・富士・日本興業銀行の事業統合」',url:'https://www.jftc.go.jp/dk/kiketsu/jirei/h12mokuji/h12jirei1.html',note:'グローバル化・金融自由化の進展下で総合金融サービスを提供するための統合と説明'},
+  smbc2001:{label:'金融庁「さくら銀行及び住友銀行の事業再構築計画」',url:'https://www.fsa.go.jp/news/newsj/ginkou/f-20010329-6.html',note:'競争激化への対応、顧客基盤強化、合理化、国際競争力向上を合併目標として記載'},
+  mufg2006:{label:'三菱東京FG 有価証券報告書（経営統合・合併の目的）',url:'https://www.mufg.jp/dam/ir/report/security_report/backnumber/2006/pdf/yu_mtfg05half.pdf',note:'世界屈指の総合金融グループ形成と高度化する顧客ニーズへの対応を目的として記載'},
+  mizuho2013:{label:'みずほFG「みずほ銀行とみずほコーポレート銀行の合併契約締結」',url:'https://www.mizuho-fg.co.jp/release/20130226_3release_jp.html',note:'顧客利便性、グループ連携、ガバナンス、経営効率と経営資源最適化を合併目的として記載'},
+  juhachiFfg:{label:'FFG・十八銀行「長崎県経済の活性化に貢献する経営統合の実現に向けて」',url:'https://www.18shinwabank.co.jp/announcement/18bank/backnumber/news/topics/pdf/2018/topics014_keieitougou01.pdf',note:'効率化と経営基盤強化を通じ長崎県経済へ継続的に貢献する目的を説明'},
+  juhachiFaq:{label:'十八親和銀行「店舗統合FAQ」',url:'https://www.18shinwabank.co.jp/faq/tougou/',note:'重複店舗、人員・情報・ノウハウ集約、経営資源再配置と経営体力強化を説明'},
+  daishiHokuetsu:{label:'第四北越銀行『第四北越FG誕生』',url:'https://www.dhbk.co.jp/company/library/pdf/dh_13.pdf',note:'地域への貢献、金融・情報仲介機能向上、合理化・効率化を統合目的として整理'},
+  aomoriMichinoku:{label:'青森銀行「みちのく銀行との経営統合について」臨時株主総会補足資料',url:'https://www.a-bank.jp/contents/guide/ir/kabunushi_soukai/pdf/ex/20220126_hosoku.pdf',note:'低金利、人口減少、COVID-19、デジタル化への対応と経営合理化を背景・目的として記載'},
+  hachijuniNagano:{label:'八十二銀行・長野銀行「経営統合の背景」',url:'https://bank.82group.jp/naganobank/release/2022/pdf/8287.pdf',note:'人口構成変化、低金利、競争環境、DX・GX等への対応と持続可能な経営基盤構築を説明'}
+};
+
+const DIRECT_REASON_RULES=[
+  {when:n=>nodeYear(n)===1948 && /第一銀行が分離|帝国銀行.*分離/.test((n.label||'')+' '+(n.memo||'')),level:'個別研究・公式社史',text:'帝国銀行は戦時下に三井銀行と第一銀行の合併で成立しましたが、戦後、旧両行の経営方針・営業機構・人的構成や組織文化の融和が難しかったことなどを背景に、旧第一系から分離要望が出て第一銀行が再発足しました。',sources:['daiichiSplitStudy','postwarSplit']},
+  {when:n=>nodeYear(n)===1971 && /第一勧業銀行|日本勧業銀行/.test((n.label||'')+' '+(n.memo||'')),level:'公式沿革＋時代背景',text:'第一銀行と日本勧業銀行はいずれも都市銀行の中位層にあり、合併による規模拡大と全国的な顧客基盤の形成が大きな狙いでした。公式沿革は「国民的・中立的な銀行」の形成を掲げ、同時期の金融史資料では規制下で業容を大きく拡大する手段として銀行再編が重要だったことが示されています。',sources:['dkbMizuho','postwarScale']},
+  {when:n=>nodeYear(n)===1973 && /太陽神戸銀行|神戸銀行.*太陽銀行/.test((n.label||'')+' '+(n.memo||'')),level:'公式社史',text:'神戸銀行の関西地盤と太陽銀行の首都圏地盤は重複が少なく、店舗網・顧客基盤を相互補完して規模とリテール基盤を強化することが合併の主な狙いでした。',sources:['taiyoKobe']},
+  {when:n=>nodeYear(n)===1986 && /平和相互銀行/.test((n.label||'')+' '+(n.memo||'')),level:'公的研究資料',text:'平和相互銀行は不正融資問題などを背景に経営再建が行き詰まりました。一方、住友銀行には東京圏での店舗・営業基盤を拡大する狙いがあり、再建と首都圏基盤拡大が重なった合併と整理されています。',sources:['heiwaCao']},
+  {when:n=>nodeYear(n)===1990 && /太陽神戸三井銀行|三井銀行.*太陽神戸銀行/.test((n.label||'')+' '+(n.memo||'')),level:'公式社史',text:'金融自由化やBIS自己資本比率規制への対応が重要になる中、三井銀行は資金量・店舗基盤の制約、太陽神戸銀行は店舗効率や大企業・国際業務の強化という課題を抱えていました。両行の補完関係を生かして経営体力と競争力を高めることが合併の背景でした。',sources:['sakuraHistory','postwarSplit']},
+  {when:n=>nodeYear(n)===1991 && /協和埼玉銀行|協和銀行.*埼玉銀行/.test((n.label||'')+' '+(n.memo||'')),level:'公的審査資料',text:'公正取引委員会資料では、経営基盤の強化・充実、サービスの質の向上、両行の伝統・長所を生かしたリテール分野での優位確保が合併目的として示されています。',sources:['kyowaSaitama']},
+  {when:n=>nodeYear(n)===1996 && /東京三菱銀行|三菱銀行.*東京銀行/.test((n.label||'')+' '+(n.memo||'')),level:'公的審査資料',text:'三菱銀行の国内基盤と東京銀行の国際業務・海外拠点を組み合わせ、国内外の拠点網を充実させて国際競争力を高めることが合併の主要目的でした。',sources:['tokyoMitsubishi']},
+  {when:n=>nodeYear(n)===2000 && /みずほFG|第一勧業銀行.*富士銀行.*日本興業銀行/.test((n.label||'')+' '+(n.memo||'')),level:'公的審査資料',text:'経済のグローバル化と金融自由化が本格化する中、3行の顧客基盤と銀行・証券・信託機能を統合し、総合的な金融サービスを提供できる大規模金融グループを形成することが狙いでした。',sources:['mizuho2000','modernResearch']},
+  {when:n=>nodeYear(n)===2001 && /三井住友銀行|さくら銀行.*住友銀行/.test((n.label||'')+' '+(n.memo||'')),level:'公的資料',text:'金融再編と競争激化、日本版金融ビッグバン、IT化への対応を背景に、顧客基盤と営業力を補完し、合理化による収益性・健全性の向上と国際競争力の強化を図ることが合併目的でした。',sources:['smbc2001','modernResearch']},
+  {when:n=>nodeYear(n)===2002 && /みずほ銀行発足/.test((n.label||'')+' '+(n.memo||'')),level:'公的審査資料',text:'2000年に始まった3行統合を実際の銀行組織へ落とし込み、顧客セグメント別に機能を再編して総合金融サービスを提供するための組織再編でした。',sources:['mizuho2000']},
+  {when:n=>nodeYear(n)===2006 && /三菱東京UFJ銀行|東京三菱銀行.*UFJ銀行/.test((n.label||'')+' '+(n.memo||'')),level:'公式開示資料',text:'顧客ニーズの多様化・高度化とグローバル競争に対応するため、銀行・信託・証券等の機能を束ね、世界規模で競争できる総合金融グループを形成し、統合による合理化・シナジーを実現することが目的でした。',sources:['mufg2006','modernResearch']},
+  {when:n=>nodeYear(n)===2013 && /みずほ銀行へ統合|みずほコーポレート銀行/.test((n.label||'')+' '+(n.memo||'')),level:'プレスリリース',text:'リテールとホールセールに分かれていた2銀行を一体化し、顧客へ金融サービスをより直接・迅速に提供するとともに、銀・信・証の連携、ガバナンス、経営効率、人材・ネットワーク等の経営資源配分を改善することが目的でした。',sources:['mizuho2013']},
+  {when:n=>nodeYear(n)===2020 && /十八親和銀行|十八銀行.*親和銀行/.test((n.label||'')+' '+(n.memo||'')),level:'公式資料',text:'人口減少などで地域金融の経営環境が厳しくなる中、長崎県経済への継続的な貢献を可能にする経営基盤をつくることが中心目的でした。重複店舗・システム等の効率化で生じる人員や資源を再配置し、両行の情報・ノウハウを集約してサービス力と経営体力を高める狙いが示されています。',sources:['juhachiFfg','juhachiFaq']},
+  {when:n=>nodeYear(n)===2021 && /第四北越銀行|第四銀行.*北越銀行|北越銀行.*第四銀行/.test((n.label||'')+' '+(n.memo||'')),level:'公式銀行史',text:'地域への持続的な貢献を最大目的とし、両行の融資・情報ネットワークを融合して金融・情報仲介機能を高めるとともに、規模の経済を生かした合理化・効率化で持続可能なビジネスモデルを構築することが統合・合併の狙いでした。',sources:['daishiHokuetsu','regionalFsa']},
+  {when:n=>nodeYear(n)===2025 && /青森みちのく銀行|青森銀行.*みちのく銀行/.test((n.label||'')+' '+(n.memo||'')),level:'公式統合資料',text:'長期低金利による利鞘縮小、少子高齢化・労働人口減少、COVID-19後の社会構造変化、デジタル化などを背景に、両行のネットワークとノウハウを融合し、金融サービスを維持・高度化しながら経営合理化で健全な基盤を構築することが目的でした。',sources:['aomoriMichinoku','regionalSupport']},
+  {when:n=>nodeYear(n)===2026 && /八十二長野銀行|八十二銀行.*長野銀行/.test((n.label||'')+' '+(n.memo||'')),level:'公式統合資料',text:'人口減少・少子高齢化、長期低金利による利鞘縮小、異業種参入、DX・GXなどへの対応を背景に、両行の人材・ノウハウ・顧客関係を組み合わせ、金融仲介機能と経営基盤を強化して持続可能な地域金融モデルを構築することが目的でした。',sources:['hachijuniNagano','regionalSupport']}
+];
+
+function genericReasonInfo(n){
+  const y=nodeYear(n),type=String(n.type||''),text=(n.label||'')+' '+(n.memo||'');
+  if(type==='現在') return {level:'系譜終点',text:'このノードは現在・後身銀行を示す表示用ノードです。統合・合併そのものの原因は、直前の再編ノードの「背景・理由」で確認してください。',sources:[]};
+  if(type==='国立銀行') return {level:'制度背景',text:'このノードは国立銀行としての設立・系譜の起点です。統合・合併の原因を示すノードではありません。国立銀行制度とその後の普通銀行転換については日本銀行の制度史資料を参照できます。',sources:['nationalConversion']};
+  if(type==='合併相手開始'||type==='支流直前名') return {level:'補助ノード',text:'このノードは合併相手・支流の位置関係を可視化するための補助ノードです。個別の統合理由は合流先ノード側に表示し、ここでは該当時期の制度・経営環境のみを背景情報として示します。',sources:y<=1945?(y>=1937?['wartimeOnePref']:y>=1920?['interwarCrisis','bankAct1927']:['earlyPolicy']):y<=2004?['modernResearch']:['regionalFsa']};
+  if(type==='普通銀行化') return {level:'制度上の直接要因',text:'国立銀行の営業年限は開業許可から20年とされ、満期後は普通銀行へ転換する制度となっていました。このため1890年代後半以降の「普通銀行化」は、個別の経営判断だけでなく、国立銀行制度の終了と法制度上の転換が直接の背景です。',sources:['nationalConversion']};
+  if(type==='普通銀行転換'&&y>=1989) return {level:'制度・業態転換',text:'このノードは合併ではなく業態転換を示します。個別の認可・経営判断が直接要因であり、統合原因としては扱いません。後続の合併については該当ノードで別途説明します。',sources:[]};
+  if(type==='設立・開業') return {level:'設立背景',text:'このノードは設立・開業を示すため、統合・合併の原因ではありません。設立主体や地域経済上の背景は、ノード本文と原典リンクで確認してください。',sources:[]};
+  if(type==='商号変更'&&!/合併|統合|買収|譲受/.test(text)) return {level:'商号変更',text:'このノードは主として名称変更を示し、統合・合併の原因を伴う出来事ではありません。名称変更の理由は公式発表が確認できる場合に原典リンクで補足します。',sources:[]};
+  if(y<=1896) return {level:'個別理由未確認',text:'この明治前期の再編について、公開資料から個別の直接理由を十分に確認できていないため、原因を断定していません。当時は銀行制度の形成過程にあり、経営不振・営業権移転・地域内再編など複数の要因があり得ます。',sources:['prewarMergerStability']};
+  if(y<=1919) return {level:'時代背景（個別因果は未確定）',text:'20世紀初頭には小規模銀行の乱立が金融システム安定上の問題とされ、当局は新設規制の強化や銀行合同を促進しました。1911年には地方長官へ合同促進を求める通牒も出されています。ただし、この一般政策だけを当該ノードの直接原因とは断定していません。',sources:['earlyPolicy','prewarMergerStability']};
+  if(y<=1936) return {level:'時代背景（政策要因が強い時期）',text:'第一次大戦後の長期不況と不良債権、1920年代に相次いだ金融不安・恐慌を背景に、政府は銀行合同を金融システム安定化策として強く推進しました。1927年銀行法の最低資本金規制では、多くの小規模銀行が増資だけで要件を満たすことを認められにくく、合併または廃業を迫られました。個別案件では地域事情や経営状態も異なるため、政策背景と直接原因を区別して表示しています。',sources:['interwarCrisis','bankAct1927']};
+  if(y<=1945) return {level:'時代背景（戦時金融統制）',text:'1930年代後半から戦時期には、金融機関の整理・統合を進める「一県一行」方向の政策と戦時金融統制が地方銀行合同の強い背景となりました。ただし、個別行の財務状態や地域内の主導権関係も影響し得るため、すべてを一律に政策だけの結果とは断定していません。',sources:['wartimeOnePref','earlyPolicy']};
+  if(y<=1959) return {level:'戦後再編',text:'戦後は、戦時下に形成された銀行組織の分離・再建整備、特殊銀行制度の整理、旧財閥系銀行の名称変更・復帰などが進みました。このノードの直接理由が個別資料で確認できない場合は、戦後金融制度再編という背景として示しています。',sources:['postwarSplit']};
+  if(y<=1974) return {level:'時代背景（規模拡大・業務補完）',text:'高度成長末期の都市銀行では、規制下で業容を大きく拡大する方法として合併が重要となり、店舗網・地域地盤・顧客層の補完や規模拡大が再編の典型的な狙いでした。これは当該期の一般背景であり、個別ノードの直接目的が確認できた場合は上段の個別説明を優先します。',sources:['postwarScale']};
+  if(y<=1989) return {level:'時代背景（自由化・競争対応）',text:'1970年代後半から1980年代は、金利自由化、資金調達手段の多様化、国際化などで銀行間競争が変化し、営業基盤・店舗網・収益力の強化が再編課題となりました。個別案件には救済・経営再建型もあり、直接理由は案件ごとに異なります。',sources:['postwarScale']};
+  if(y<=2004) return {level:'研究上の一般背景',text:'1990年代から2000年代前半の銀行再編については、金融危機・不良債権問題と金融システム安定化、競争激化への対応、効率改善など複数の動機が研究で確認されています。この一般研究を当該案件の直接原因と同一視せず、個別資料がある場合はそちらを優先します。',sources:['modernResearch']};
+  if(y<=2019) return {level:'研究・政策上の一般背景',text:'この時期の銀行再編では、統合による効率化や総合金融サービス競争への対応に加え、地域銀行では人口減少・低金利・固定費負担を背景とした経営基盤強化が重要な論点となりました。個別案件の目的は公式資料がある場合に別途優先表示します。',sources:['modernResearch','regionalFsa']};
+  return {level:'研究・政策上の一般背景',text:'近年の地域銀行再編では、人口減少・少子高齢化、長期的な収益環境の変化、デジタル対応等の固定費、地域金融サービスを持続的に維持する必要性が共通の背景として金融庁資料に示されています。これは当該案件の一般背景であり、個別の直接理由は公式発表が確認できる場合に優先表示します。',sources:['regionalFsa','regionalSupport']};
+}
+function reasonInfo(n){
+  for(const r of DIRECT_REASON_RULES){try{if(r.when(n))return r;}catch(_){}}
+  return genericReasonInfo(n);
+}
+function appendReasonSourceLinks(n,push){
+  const info=reasonInfo(n);
+  for(const key of (info.sources||[])){
+    const src=REASON_SOURCES[key];
+    if(src)push(src.label,src.url,'背景・理由の根拠：'+src.note);
+  }
+}
+function reasonContextHtml(n){
+  const info=reasonInfo(n);
+  if(!info||!info.text)return '';
+  return '<div class="meta" style="margin-top:12px;padding:10px 0 2px;border-top:1px solid var(--border);"><b style="color:var(--text);">背景・理由</b> <span class="pill">'+esc(info.level||'背景')+'</span><div style="margin-top:7px;color:var(--text);font-size:12px;line-height:1.65;">'+esc(info.text)+'</div><div style="margin-top:5px;color:var(--muted);font-size:9.5px;line-height:1.45;">※研究論文・公的資料・公式発表の記載を短く要約しています。原文の長文転載は行っていません。「時代背景」は個別案件の直接原因を断定するものではありません。</div></div>';
+}
 function appendContextualSourceLinks(n,push){
   const labels=[String(n.label||''),String(n.memo||'')];
   for(const [key,links] of Object.entries(EVENT_SOURCE_LINKS)){
@@ -502,6 +590,8 @@ function collectNodeSourceLinks(n,mo){
   }
   // 出来事を直接裏付ける一次資料・公式沿革・報道を優先して追加。
   appendContextualSourceLinks(n,push);
+  // 「背景・理由」の根拠となる研究論文・公的資料・プレスリリース。
+  appendReasonSourceLinks(n,push);
   // 歴史変遷の共通原典。
   for(const s of CORE_SOURCE_LINKS) push(s.label,s.url,s.note);
   if(n.no===1 || n.no_min===1 || /第一国立銀行/.test(String(n.label||''))){
@@ -526,7 +616,7 @@ function selectNode(n){
   const baseSource=baseSourceUrl?`${esc(n.source||GRAPH.meta.source_note)}：${linkHtml(baseSourceUrl,'元情報を開く')}`:esc(n.source||GRAPH.meta.source_note);
   const panel=document.getElementById('detail');
   setDockOpen('detailDock','detailTab',true);
-  panel.innerHTML=`<h3>${esc(n.label)}</h3><div class="meta"><span class="pill">${esc(n.type)}</span><span class="pill">${n.display_year||n.year||n.year_min}</span>${ref}${members}<br>行・所在地: ${esc(rowInfo)}<br>現在/後身: ${esc(n.current||'—')}<br>${esc(metricText(n,activeMetric))}<br><span style="color:#c7d1e6">${esc((mo.note||''))}</span><br><span style="color:#c7d1e6">${metricSource}</span><br>精度: ${esc(n.accuracy||'exact')}</div>${warn}<div class="memo">${esc(n.memo||'')}</div><div class="meta" style="margin-top:10px;">出典メモ: ${baseSource}</div>${sourceLinksHtml(n,mo)}`;
+  panel.innerHTML=`<h3>${esc(n.label)}</h3><div class="meta"><span class="pill">${esc(n.type)}</span><span class="pill">${n.display_year||n.year||n.year_min}</span>${ref}${members}<br>行・所在地: ${esc(rowInfo)}<br>現在/後身: ${esc(n.current||'—')}<br>${esc(metricText(n,activeMetric))}<br><span style="color:#c7d1e6">${esc((mo.note||''))}</span><br><span style="color:#c7d1e6">${metricSource}</span><br>精度: ${esc(n.accuracy||'exact')}</div>${warn}<div class="memo">${esc(n.memo||'')}</div>${reasonContextHtml(n)}<div class="meta" style="margin-top:10px;">出典メモ: ${baseSource}</div>${sourceLinksHtml(n,mo)}`;
 }
 
 
