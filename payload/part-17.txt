@@ -426,7 +426,7 @@ function baseNodeVisible(n){
   return (showBranches||!n.branch) && qMatchesNode(n);
 }
 function setPathHighlight(startId,pinned=false){
-  if(hoverNodeId===startId) { updateRowLabels(); return; }
+  if(hoverNodeId===startId&&!pinned) { updateRowLabels(); return; }
   clearPathHighlight(true);
   if(pinned&&activeLayout==='parallel')setParallelBranchExpansion(startId);
   const set=activeSet(),hi=highlightColors(); hoverNodeId=startId;
