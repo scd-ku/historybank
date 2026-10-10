@@ -213,6 +213,29 @@ input[type=file]::file-selector-button:active {
   box-shadow: none;
   transform: translate(3px, 3px);
 }
+
+/* Kagawa University olive: selected row typography and all range thumbs. */
+.side .cityrow.is-selected,
+.side .cityrow.is-selected span,
+.side .cityrow.is-selected span:first-child,
+.side .cityrow.is-selected span:last-child,
+.side .cityrow.is-selected a,
+.side .cityrow.is-selected a:visited { color: #fff; }
+input[type=range], #slider { accent-color: var(--kagawa-olive); }
+input[type=range]::-webkit-slider-thumb,
+input[type=range]:hover::-webkit-slider-thumb,
+input[type=range]:active::-webkit-slider-thumb,
+input[type=range]:focus-visible::-webkit-slider-thumb {
+  background: var(--kagawa-olive);
+  border-color: #171717;
+}
+input[type=range]::-moz-range-thumb,
+input[type=range]:hover::-moz-range-thumb,
+input[type=range]:active::-moz-range-thumb,
+input[type=range]:focus-visible::-moz-range-thumb {
+  background: var(--kagawa-olive);
+  border-color: #171717;
+}
 </style></head><body>
 <header><div><h1>百十四銀行 店舗変遷 × 香川県の人口動態</h1></div><div style="flex:1"></div><button id="resetView">↺ 視点を戻す</button><button id="help">? 使い方</button></header>
 <div class="layout"><section class="maparea"><div class="toolbar"><button id="play" class="primary">▶ 再生</button><button id="prev">‹</button><button id="next">›</button><span id="year">2024</span><input aria-label="年度" type="range" id="slider" min="2015" max="2026" step="1" value="2025"><select id="speed" aria-label="速度"><option value="1800">ゆっくり</option><option value="1150" selected>標準</option><option value="650">速い</option></select><select id="mode"><option value="change" selected>割合（高さ=2015比／色=前年比）</option><option value="population">人口（高さ=実人口／色=前年比）</option><option value="density">人口密度（高さ=人/km²／色=前年比）</option><option value="neutral">単色</option></select><button id="topView">真上</button><button id="frontView">正面</button><button id="sideView">横</button></div>
