@@ -191,6 +191,28 @@ button:disabled:hover {
 @media(prefers-reduced-motion:reduce){
  button,input[type=file]::file-selector-button{transition:none}
 }
+
+/* Kagawa University official olive-green selection color (VI: #82AE41).
+   Selection and pressing, not data colors, use the university accent. */
+:root { --kagawa-olive: #82AE41; }
+.side .cityrow.is-selected {
+  background: var(--kagawa-olive);
+  color: #171717;
+  border-bottom-color: #739a39;
+  box-shadow: inset 2px 0 #171717;
+}
+.side .cityrow.is-selected span,
+.side .cityrow.is-selected span:first-child { color: #171717; }
+.cityrow[role="button"]:focus-visible { outline-color: var(--kagawa-olive); }
+button:not(:disabled):active,
+button.primary:not(:disabled):active,
+button#loadTownOnline:not(:disabled):active,
+input[type=file]::file-selector-button:active {
+  background: var(--kagawa-olive);
+  color: #171717;
+  box-shadow: none;
+  transform: translate(3px, 3px);
+}
 </style></head><body>
 <header><div><h1>百十四銀行 店舗変遷 × 香川県の人口動態</h1></div><div style="flex:1"></div><button id="resetView">↺ 視点を戻す</button><button id="help">? 使い方</button></header>
 <div class="layout"><section class="maparea"><div class="toolbar"><button id="play" class="primary">▶ 再生</button><button id="prev">‹</button><button id="next">›</button><span id="year">2024</span><input aria-label="年度" type="range" id="slider" min="2015" max="2026" step="1" value="2025"><select id="speed" aria-label="速度"><option value="1800">ゆっくり</option><option value="1150" selected>標準</option><option value="650">速い</option></select><select id="mode"><option value="change" selected>割合（高さ=2015比／色=前年比）</option><option value="population">人口（高さ=実人口／色=前年比）</option><option value="density">人口密度（高さ=人/km²／色=前年比）</option><option value="neutral">単色</option></select><button id="topView">真上</button><button id="frontView">正面</button><button id="sideView">横</button></div>
@@ -724,7 +746,7 @@ function drawSelectedCityOutline(ctx){
   ring.forEach((v,i)=>{const p=projected(v[0],v[1],h);if(i)ctx.lineTo(p[0],p[1]);else ctx.moveTo(p[0],p[1])});
   ctx.closePath();
   ctx.strokeStyle='rgba(255,255,255,.95)';ctx.lineWidth=3.3;ctx.stroke();
-  ctx.strokeStyle='#2058bd';ctx.lineWidth=1.75;ctx.stroke();
+  ctx.strokeStyle='#82AE41';ctx.lineWidth=1.9;ctx.stroke();
  }
  ctx.restore();
 }
