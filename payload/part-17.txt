@@ -835,11 +835,17 @@ function updateRowLabels(){
     const rowY=(activeLayout==='parallel'?parallelRowY(no):noToY(no)),sy=worldYToFixedScreenY(rowY);
     if(sy<layout.rowsTop-24||sy>window.innerHeight+24)continue;
     const isActive=pathNos.has(no),hasHighlight=hoverPathIds&&hoverPathIds.size>0;
-    if(!isActive&&sy-last<minGap)continue;
-    const row=GRAPH.nodes.find(n=>n.type==='国立銀行'&&n.no===no),d=document.createElement('div');
+    if(no!==114&&!isActive&&sy-last<minGap)continue;
+    const row=GRAPH.nodes.find(n=>n.type==='国立銀行'&&n.no===no),d=document.createElement(no===114?'a':'div');
     d.className='rowLabel'+(isActive?' active':(hasHighlight?' dim':''));
     d.style.top=(sy-layout.rowsTop)+'px';
     d.textContent=row?(row.row_label||(no+'. '+row.label+(row.place?'（'+row.place+'）':''))):String(no);
+    if(no===114){
+      // Link the national bank's left-side row label to its branch/population atlas.
+      d.href='114/';d.title='百十四銀行 店舗変遷 × 香川県の人口動態を開く';
+      d.style.pointerEvents='auto';d.style.cursor='pointer';d.style.textDecoration='underline';d.style.textUnderlineOffset='3px';
+      d.style.opacity='1';
+    }
     c.appendChild(d);last=sy;
   }
   if(activeLayout==='parallel'&&parallelBranchExpansion){
