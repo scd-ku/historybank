@@ -842,7 +842,7 @@ function updateRowLabels(){
     d.textContent=row?(row.row_label||(no+'. '+row.label+(row.place?'（'+row.place+'）':''))):String(no);
     if(no===114){
       // Link the national bank's left-side row label to its branch/population atlas.
-      d.href='114/';d.title='百十四銀行 店舗変遷 × 香川県の人口動態を開く';
+      d.href='https://scd-ku.github.io/historybank/114/index.html';d.title='百十四銀行 店舗変遷 × 香川県の人口動態を開く';
       d.style.pointerEvents='auto';d.style.cursor='pointer';d.style.textDecoration='underline';d.style.textUnderlineOffset='3px';
       d.style.opacity='1';
     }
